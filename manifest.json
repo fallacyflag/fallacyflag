@@ -1,0 +1,40 @@
+{
+  "name": "FallacyFlag — Raising the flag on faulty reasoning",
+  "short_name": "FallacyFlag",
+  "description": "We don't check facts — we check logic. Identify logical fallacies in political arguments across the spectrum.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#111118",
+  "theme_color": "#111118",
+  "orientation": "any",
+  "scope": "/",
+  "icons": [
+    {
+      "src": "/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-maskable-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-maskable-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "categories": ["news", "politics", "education"],
+  "lang": "en",
+  "dir": "ltr"
+}

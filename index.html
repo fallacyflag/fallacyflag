@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FallacyFlag — Raising the flag on faulty reasoning</title>
+  <meta name="description" content="We don't check facts — we check logic. FallacyFlag identifies logical fallacies in political arguments across the spectrum." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://fallacyflag.com" />
+  <meta property="og:title" content="FallacyFlag — Raising the flag on faulty reasoning" />
+  <meta property="og:description" content="We don't check facts — we check logic. Analyze any argument for logical fallacies." />
+  <meta property="og:image" content="https://fallacyflag.com/og-image.png?v=2" />
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:site" content="@FallacyFlagHQ" />
+  <meta name="twitter:title" content="FallacyFlag — Raising the flag on faulty reasoning" />
+  <meta name="twitter:description" content="We don't check facts — we check logic. Analyze any argument for logical fallacies." />
+  <meta name="twitter:image" content="https://fallacyflag.com/og-image.png?v=2" />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#111118" />
+  <link rel="apple-touch-icon" href="/icon-192x192.png" />
+  <style>
+    body { background: #111118; background-image: repeating-linear-gradient(to bottom, rgba(229,57,53,0.28) 0px, rgba(229,57,53,0.10) 200px, rgba(200,200,215,0.10) 500px, rgba(200,200,215,0.04) 650px, rgba(15,15,25,0.95) 800px, rgba(229,57,53,0.28) 1100px); color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; }
+    *, *::before, *::after { box-sizing: border-box; }
+
+    .bg-site { background: #111118; background-image: repeating-linear-gradient(to bottom, rgba(229,57,53,0.28) 0px, rgba(229,57,53,0.10) 200px, rgba(200,200,215,0.10) 500px, rgba(200,200,215,0.04) 650px, rgba(15,15,25,0.95) 800px, rgba(229,57,53,0.28) 1100px); }
+    .bg-card { background: #1e293b; }
+    .bg-card-inner { background: #334155; }
+    .bg-card-deep { background: #0f172a; }
+    .border-dim { border-color: #334155; }
+    .border-mid { border-color: #475569; }
+    .text-yellow { color: #facf39; }
+    .text-dim { color: #9ca3af; }
+    .text-dimmer { color: #6b7280; }
+    .text-dimmest { color: #4b5563; }
+    .bg-yellow-btn { background: #facf39; }
+    .bg-yellow-btn:hover { background: #ffe066; }
+    .border-yellow-accent { border-color: #d4a800; }
+    .border-yellow-line { border-color: #facf39; }
+    .bg-tag-dim { background: #475569; }
+
+    /* Card severity badges */
+    .badge-red { background: #e53935; color: #fff; font-size: 0.7rem; font-weight: 800; padding: 0.25rem 0.6rem; border-radius: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.3rem; }
+    .badge-yellow { background: #facf39; color: #111827; font-size: 0.7rem; font-weight: 800; padding: 0.25rem 0.6rem; border-radius: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.3rem; }
+    .badge-green { background: #16a34a; color: #fff; font-size: 0.7rem; font-weight: 800; padding: 0.25rem 0.6rem; border-radius: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em; white-space: nowrap; display: inline-flex; align-items: center; gap: 0.3rem; }
+
+    /* Fallacy finding borders by severity */
+    .finding-border-red { border-left: 4px solid #e53935; }
+    .finding-border-yellow { border-left: 4px solid #facf39; }
+    .finding-border-green { border-left: 4px solid #16a34a; }
+
+    .text-green-accent { color: #4ade80; }
+    .text-red-accent { color: #f87171; }
+
+    .nav-bar { position: sticky; top: 0; z-index: 50; background: rgba(17,17,24,0.97); backdrop-filter: blur(12px); border-bottom: 1px solid #ffffff; }
+    .gradient-overlay { background: none; }
+
+    .analysis-card { transition: border-color 0.2s; }
+    .analysis-card:hover { border-color: #6b7280; }
+    .fallacy-grid-card { transition: border-color 0.2s; cursor: pointer; }
+    .fallacy-grid-card:hover { border-color: #facf39; }
+    textarea:focus { outline: none; border-color: #facf39; }
+    button { cursor: pointer; }
+    .tweet-box { white-space: pre-wrap; font-family: 'Courier New', monospace; }
+
+    /* Rating scale legend */
+    .rating-scale { display: flex; gap: 1.5rem; flex-wrap: wrap; justify-content: center; margin-top: 1rem; }
+    .rating-item { display: flex; align-items: center; gap: 0.5rem; }
+    .rating-dot { width: 0.75rem; height: 0.75rem; border-radius: 50%; }
+    .rating-dot-green { background: #16a34a; }
+    .rating-dot-yellow { background: #facf39; }
+    .rating-dot-red { background: #e53935; }
+
+    /* Topic filters */
+    .topic-filters { display: flex; flex-wrap: wrap; gap: 0.5rem; justify-content: center; margin-bottom: 2rem; }
+    .topic-btn { background: #334155; color: #9ca3af; border: 1px solid #374151; padding: 0.4rem 1rem; border-radius: 2rem; font-size: 0.8rem; font-weight: 600; transition: all 0.2s; cursor: pointer; }
+    .topic-btn:hover { border-color: #facf39; color: #facf39; }
+    .topic-btn.active { background: #facf39; color: #111827; border-color: #facf39; }
+    .topic-count { font-size: 0.65rem; font-weight: 700; opacity: 0.6; margin-left: 0.25rem; }
+    .topic-btn.active .topic-count { opacity: 0.8; }
+
+    /* Leaderboard */
+    .lb-section { display: grid; grid-template-columns: 1fr; gap: 1.5rem; }
+    @media (min-width: 768px) { .lb-section { grid-template-columns: 1fr 1fr; } }
+    .lb-table { width: 100%; border-collapse: collapse; }
+    .lb-table th { text-align: left; color: #6b7280; font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; padding: 0.5rem 0.75rem; border-bottom: 1px solid #334155; }
+    .lb-table td { padding: 0.55rem 0.75rem; border-bottom: 1px solid rgba(51,65,85,0.5); color: #d1d5db; font-size: 0.82rem; }
+    .lb-table tbody tr:hover td { background: rgba(250,207,57,0.04); }
+    .lb-rank { color: #facf39; font-weight: 700; width: 1.5rem; text-align: center; }
+    .lb-bar-track { height: 5px; border-radius: 3px; background: #1e293b; flex: 1; overflow: hidden; display: flex; }
+    .lb-bar-seg { height: 100%; }
+    .lb-pill { font-size: 0.65rem; font-weight: 700; padding: 0.15rem 0.45rem; border-radius: 0.75rem; display: inline-block; min-width: 1.3rem; text-align: center; }
+    .lb-sub { font-size: 0.7rem; color: #6b7280; }
+    .lb-toggle { display: inline-flex; border-radius: 0.5rem; overflow: hidden; border: 1px solid #334155; }
+    .lb-toggle-btn { padding: 0.35rem 0.75rem; font-size: 0.75rem; font-weight: 600; background: transparent; color: #6b7280; border: none; cursor: pointer; transition: all 0.2s; }
+    .lb-toggle-btn.active { background: #facf39; color: #111827; }
+
+    /* Fallacy of the Week */
+    .fotw-wrap { margin-bottom: 2.5rem; }
+    .fotw-card { border: 2px solid #facf39; background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%); border-radius: 1rem; position: relative; overflow: hidden; padding: 1.75rem; }
+    .fotw-ribbon { position: absolute; top: 0; right: 0; background: #facf39; color: #111827; font-size: 0.65rem; font-weight: 800; padding: 0.35rem 1rem 0.35rem 1.25rem; text-transform: uppercase; letter-spacing: 0.06em; border-bottom-left-radius: 0.75rem; }
+
+    .topic-tag { display: inline-block; background: #334155; color: #9ca3af; font-size: 0.65rem; font-weight: 600; padding: 0.15rem 0.5rem; border-radius: 1rem; text-transform: uppercase; letter-spacing: 0.04em; }
+
+    /* Hamburger menu */
+    .hamburger { display: none; background: none; border: none; cursor: pointer; padding: 0.5rem; }
+    .hamburger span { display: block; width: 22px; height: 2px; background: #9ca3af; margin: 5px 0; border-radius: 2px; transition: all 0.3s; }
+    .hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+    .mobile-menu { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(17,17,24,0.98); z-index: 100; padding: 5rem 2rem 2rem; overflow-y: auto; }
+    .mobile-menu.open { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; }
+    .mobile-menu a, .mobile-menu span { display: block; color: #d1d5db; font-size: 1.1rem; font-weight: 500; padding: 0.75rem 1.5rem; text-decoration: none; text-align: center; border-radius: 0.5rem; transition: all 0.2s; width: 100%; max-width: 20rem; }
+    .mobile-menu a:hover { background: rgba(250,207,57,0.1); color: #facf39; }
+    .mobile-menu .mobile-active { color: #facf39; font-weight: 700; background: rgba(250,207,57,0.08); }
+    .mobile-menu .mobile-divider { height: 1px; background: #334155; margin: 0.5rem auto; width: 100%; max-width: 16rem; }
+    .mobile-close { position: absolute; top: 1rem; right: 1.5rem; background: none; border: none; color: #9ca3af; font-size: 1.75rem; cursor: pointer; padding: 0.5rem; z-index: 101; }
+
+    @media (max-width: 768px) {
+      .hero-title { font-size: 3rem !important; }
+      .nav-links { display: none !important; }
+      .hamburger { display: block; }
+    }
+    @media (min-width: 769px) {
+      .hero-title { font-size: 4.5rem; }
+      .mobile-menu { display: none !important; }
+    }
+  </style>
+</head>
+<body class="bg-site">
+
+  <!-- ADMIN TOOLBAR (hidden unless admin mode) -->
+  <div id="admin-bar" style="display:none;background:#1a0a2e;border-bottom:1px solid #6d28d9;padding:0.4rem 1rem;font-size:0.78rem">
+    <div style="max-width:72rem;margin:0 auto;display:flex;align-items:center;gap:1rem;flex-wrap:wrap">
+      <span style="color:#a78bfa;font-weight:700">&#128272; Admin</span>
+      <a href="#analyzer" style="color:#c4b5fd;text-decoration:none;transition:color 0.2s" onmouseover="this.style.color='#fff'" onmouseout="this.style.color='#c4b5fd'">Analyzer</a>
+      <a href='/instagram' onmouseout='this.style.color=\'#c4b5fd\'' onmouseover='this.style.color=\'#fff\'' style='color:#c4b5fd;text-decoration:none;transition:color 0.2s'>&#128248; IG Generator</a>
+      <a href='/potus' onmouseout='this.style.color=\'#c4b5fd\'' onmouseover='this.style.color=\'#fff\'' style='color:#c4b5fd;text-decoration:none;transition:color 0.2s'>POTUS Admin</a>
+      <span style="color:#4c1d95;margin-left:auto">session active</span>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <nav class="nav-bar">
+    <div style="max-width:72rem" class="mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="#top" class="flex items-center" style="text-decoration:none">
+        <img src="logo-nav.png" alt="FallacyFlag" style="height:28px; width:auto" />
+      </a>
+      <div class="nav-links flex items-center gap-3" style="font-size:0.85rem">
+        <a class='text-dim hover:text-white' href='/' style='text-decoration:none; transition:color 0.2s'>Home</a>
+        <a href="#reference" class="text-dim hover:text-white" style="text-decoration:none; transition:color 0.2s">Fallacy Guide</a>
+        <a href="#latest" class="text-dim hover:text-white" style="text-decoration:none; transition:color 0.2s">Latest Calls</a>
+        <a class='text-dim hover:text-white' href='/potus' style='text-decoration:none; transition:color 0.2s'>&#127482;&#127480; POTUS Watch</a>
+        <a href="#analyzer" class="text-dim hover:text-white" style="text-decoration:none; transition:color 0.2s">Analyzer</a>
+        <a href="#leaderboard" class="text-dim hover:text-white" style="text-decoration:none; transition:color 0.2s">Standings</a>
+        <a class='text-dim hover:text-white' href='archive.html' style='text-decoration:none; transition:color 0.2s'>Archive</a>
+        <a class='text-dim hover:text-white' href='/submit' style='text-decoration:none; transition:color 0.2s'>Submit a Quote</a>
+        <a class='text-dim hover:text-white' href='/weekly' style='text-decoration:none; transition:color 0.2s'>Weekly Digest</a>
+        <a href="https://x.com/FallacyFlagHQ" target="_blank" rel="noopener noreferrer" class="text-dim hover:text-blue-400" style="text-decoration:none; transition:color 0.2s">&#120143;</a>
+        <a href="https://bsky.app/profile/fallacyflaghq.bsky.social" target="_blank" rel="noopener noreferrer" class="text-dim hover:text-blue-400" style="text-decoration:none; transition:color 0.2s">&#129419;</a>
+      </div>
+      <button class="hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+  <div class="mobile-menu" id="mobile-menu">
+    <button class="mobile-close" onclick="toggleMobileMenu()">&times;</button>
+    <a class='mobile-active' href='/'>Home</a>
+    <a href="#reference" onclick="toggleMobileMenu()">Fallacy Guide</a>
+    <a href="#latest" onclick="toggleMobileMenu()">Latest Calls</a>
+    <a href='/potus'>&#127482;&#127480; POTUS Watch</a>
+    <a href="#analyzer" onclick="toggleMobileMenu()">Analyzer</a>
+    <a href="#leaderboard" onclick="toggleMobileMenu()">Standings</a>
+    <a href="archive.html" onclick="toggleMobileMenu()">Archive</a>
+    <div class="mobile-divider"></div>
+    <a href='/submit'>Submit a Quote</a>
+    <a href='/weekly'>Weekly Digest</a>
+    <div class="mobile-divider"></div>
+    <a href="https://x.com/FallacyFlagHQ" target="_blank" rel="noopener noreferrer">&#120143; @FallacyFlagHQ</a>
+    <a href="https://bsky.app/profile/fallacyflaghq.bsky.social" target="_blank" rel="noopener noreferrer">&#129419; Bluesky</a>
+  </div>
+
+  <!-- HERO -->
+  <header id="top" style="position:relative; overflow:hidden">
+    <div class="gradient-overlay" style="position:absolute; inset:0"></div>
+    <div style="position:relative; max-width:72rem" class="mx-auto px-4 py-20 md:py-32 text-center">
+      <div class="mb-8"><img src="logo-color.png" alt="FallacyFlag" style="height:120px; width:auto; margin:0 auto; display:block" /></div>
+      <p class="text-dim mb-8" style="font-size:1.35rem; font-weight:300; max-width:40rem; margin-left:auto; margin-right:auto">
+        Raising the flag on faulty reasoning.
+      </p>
+      <p class="text-dim mb-10" style="max-width:36rem; margin-left:auto; margin-right:auto; line-height:1.7">
+        We don't check facts &mdash; we check logic. Politicians, pundits, and public figures make arguments every day. Some are sound. Many rely on logical fallacies. We call the fouls &mdash; and the fair plays.
+      </p>
+      <div class="flex flex-wrap justify-center gap-4">
+        <a href="#latest" class="bg-yellow-btn text-gray-900 font-bold px-8 py-4 rounded-xl text-lg" style="text-decoration:none; transition:background 0.2s">See Latest Calls</a>
+        <a href="#analyzer" class="bg-card text-white font-bold px-8 py-4 rounded-xl text-lg border-mid" style="border-width:1px; text-decoration:none; transition:background 0.2s">Analyze an Argument</a>
+      </div>
+
+      <!-- Rating Scale Legend -->
+      <div class="rating-scale" style="margin-top:2.5rem">
+        <div class="rating-item"><div class="rating-dot rating-dot-green"></div><span class="text-dim text-sm">Fair Play &mdash; Sound reasoning</span></div>
+        <div class="rating-item"><div class="rating-dot rating-dot-yellow"></div><span class="text-dim text-sm">Yellow Card &mdash; Fallacious but common</span></div>
+        <div class="rating-item"><div class="rating-dot rating-dot-red"></div><span class="text-dim text-sm">Red Card &mdash; Egregious logic foul</span></div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ABOUT -->
+  <section id="about" style="max-width:56rem" class="mx-auto px-4 py-16">
+    <div class="bg-card rounded-2xl p-8 md:p-10 border-dim" style="border-width:1px">
+      <h2 class="text-yellow text-3xl font-bold mb-6">What's a Logical Fallacy?</h2>
+      <div class="text-dim" style="line-height:1.8">
+        <p class="mb-4">A logical fallacy is bad reasoning with good marketing. A broken clock can still hit the right time twice a day. A weak argument can do the same thing: reach the right conclusion for the wrong reasons.</p>
+        <p class="mb-4">The conclusion is not enough. The logic has to hold. Otherwise we are not learning how to think &mdash; we are just learning how to be persuaded.</p>
+        <p class="mb-4">But logic isn't only about catching errors. <strong class="text-white">Sound arguments deserve recognition too.</strong> When a public figure makes a well-structured, evidence-based case &mdash; even one you might disagree with &mdash; that's a <span class="text-green-accent font-semibold">Fair Play</span>. We believe good reasoning should be celebrated, not just bad reasoning called out.</p>
+        <p class="mb-6">FallacyFlag exists to help you see the scaffolding behind political arguments. We're not here to tell you what to think. We're here to help you see <em>how</em> people are trying to get you to think &mdash; and whether the logic holds up.</p>
+
+        <div class="bg-card-inner rounded-xl p-5" style="border-left: 4px solid #facf39">
+          <p class="text-yellow font-semibold mb-2">Our Ground Rules</p>
+          <p class="text-gray-200" style="font-size:0.95rem;line-height:1.7">We flag fallacies and fair plays across the political spectrum &mdash; left, right, and center. Identifying a fallacy is not the same as saying the speaker is wrong, and awarding a Fair Play is not the same as endorsing their conclusion. Smart people use fallacious reasoning all the time, often without realizing it. The goal is sharper public discourse, not gotcha journalism with a philosophy degree.</p>
+        </div>
+
+        <div class="bg-card-inner rounded-xl p-5 mt-4" style="border-left: 4px solid #16a34a">
+          <p class="text-green-accent font-semibold mb-2">Our Rating System</p>
+          <div class="text-gray-200" style="font-size:0.95rem;line-height:1.7">
+            <p style="margin-bottom:0.5rem"><span class="badge-green">&#9917; Fair Play</span> &nbsp;The argument is logically sound, uses evidence appropriately, avoids fallacious shortcuts, and engages with opposing views honestly. You might still disagree with the conclusion, but the reasoning is clean.</p>
+            <p style="margin-bottom:0.5rem"><span class="badge-yellow">&#x1F7E8; Yellow Card</span> &nbsp;The argument contains one or more common logical fallacies. The reasoning is flawed, but this is the kind of thing most people do without thinking &mdash; more careless than calculated.</p>
+            <p><span class="badge-red">&#x1F7E5; Red Card</span> &nbsp;The argument relies heavily on egregious or stacked fallacies, often combining multiple manipulative tactics. The reasoning isn't just flawed &mdash; it's doing the flawing on purpose.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FALLACY GUIDE -->
+  <section id="reference" style="max-width:72rem" class="mx-auto px-4 py-16">
+    <div class="text-center mb-4">
+      <h2 class="text-yellow text-3xl md:text-4xl font-bold mb-3">The Fallacy Playbook</h2>
+      <p class="text-dim" style="max-width:40rem; margin:0 auto; line-height:1.7">These are the moves to watch for. Every fallacy below is a specific type of reasoning error that shows up again and again in political arguments, media talking points, and public debate. Learn to spot them, and you'll never hear an argument the same way again.</p>
+    </div>
+    <div id="fallacy-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-8"></div>
+    <div id="fallacy-detail" style="display:none"></div>
+  </section>
+
+  <!-- LATEST CALLS -->
+  <section id="latest" style="max-width:56rem" class="mx-auto px-4 py-16">
+    <div class="text-center mb-10">
+      <h2 class="text-yellow text-3xl md:text-4xl font-bold mb-3">Latest Calls</h2>
+      <p class="text-dim">Recent arguments from the public square, reviewed for logical fouls &mdash; and fair plays.</p>
+      <p class="text-dimmest text-sm mt-1" style="font-style:italic">Representative examples inspired by real patterns in current political rhetoric</p>
+    </div>
+    <div id="fotw-container" class="fotw-wrap"></div>
+    <div id="topic-filters" class="topic-filters"></div>
+    <div id="analyses-container"></div>
+  </section>
+
+  <!-- POTUS WATCH PROMO -->
+  <section style="max-width:56rem" class="mx-auto px-4 py-8">
+    <a href='/potus' style='text-decoration:none; display:block'>
+      <div class="bg-card rounded-xl p-6 border-mid flex items-center justify-between flex-wrap gap-4" style="border-width:1px; transition:border-color 0.2s" onmouseover="this.style.borderColor='#facf39'" onmouseout="this.style.borderColor='#374151'">
+        <div class="flex items-center gap-4">
+          <span style="font-size:2.5rem">&#127482;&#127480;</span>
+          <div>
+            <h3 class="text-white text-lg font-bold mb-1">POTUS Watch</h3>
+            <p class="text-dim text-sm">A dedicated scorecard for presidential rhetoric. The biggest megaphone gets the closest look.</p>
+          </div>
+        </div>
+        <span class="text-yellow font-bold text-sm" style="white-space:nowrap">View &rarr;</span>
+      </div>
+    </a>
+  </section>
+
+  <!-- SEASON STANDINGS -->
+  <section id="leaderboard" style="max-width:56rem" class="mx-auto px-4 py-16">
+    <div class="text-center mb-8">
+      <h2 class="text-yellow text-3xl md:text-4xl font-bold mb-3">Season Standings</h2>
+      <p class="text-dim">Who's racking up the cards? Who's playing it clean? The numbers don't lie &mdash; even when the arguments do.</p>
+      <div style="margin-top:1rem">
+        <div class="lb-toggle">
+          <button class="lb-toggle-btn active" id="lb-main-btn" onclick="setLBMode('main')">Main Page</button>
+          <button class="lb-toggle-btn" id="lb-all-btn" onclick="setLBMode('all')">+ POTUS Watch</button>
+        </div>
+      </div>
+    </div>
+    <div id="leaderboard-content"></div>
+  </section>
+
+  <!-- ANALYZER -->
+  <section id="analyzer" style="max-width:56rem" class="mx-auto px-4 py-16">
+    <div class="text-center mb-8">
+      <h2 class="text-yellow text-3xl md:text-4xl font-bold mb-3">Test an Argument</h2>
+      <p class="text-dim">Paste any quote, talking point, or argument below. We'll check the logic, not the politics.</p>
+    </div>
+    <div class="bg-card rounded-2xl p-6 md:p-8" style="border: 2px solid #ca8a04">
+      <div class="flex items-center gap-3 mb-4">
+        <span style="font-size:1.75rem">&#128300;</span>
+        <div>
+          <h3 class="text-white text-2xl font-bold">Fallacy Analyzer</h3>
+          <p class="text-dim text-sm">Drop in any argument. We'll tell you if the logic holds up.</p>
+        </div>
+      </div>
+      <textarea id="analyzer-input" class="w-full bg-card-inner text-white border-mid rounded-xl p-4 mb-4" style="height:10rem; resize:none; border-width:1px; font-size:1rem" placeholder='Try pasting something like:
+
+"Everyone knows this policy is a disaster. Even my opponent&#39;s own supporters are abandoning ship. If we don&#39;t act now, our entire economy will collapse and we&#39;ll end up like Venezuela."'></textarea>
+      <!-- Admin-only image upload -->
+      <div id="analyzer-image-zone" style="display:none" class="mb-4">
+        <div id="image-drop-zone" onclick="document.getElementById('image-file-input').click()" style="border:2px dashed #475569;border-radius:0.75rem;padding:1.25rem;text-align:center;cursor:pointer;transition:border-color 0.2s;background:rgba(15,23,42,0.5)" onmouseover="this.style.borderColor='#facf39'" onmouseout="this.style.borderColor='#475569'" ondragover="event.preventDefault();this.style.borderColor='#facf39'" ondragleave="this.style.borderColor='#475569'" ondrop="event.preventDefault();this.style.borderColor='#475569';handleImageDrop(event)">
+          <div id="image-preview" style="display:none;margin-bottom:0.75rem"></div>
+          <p id="image-prompt" class="text-dim text-sm">&#128247; Paste, drag, or click to upload a screenshot of an argument</p>
+          <p class="text-dimmest text-xs mt-1">PNG, JPG, or WebP &mdash; admin only</p>
+        </div>
+        <input type="file" id="image-file-input" accept="image/png,image/jpeg,image/webp" style="display:none" onchange="handleImageSelect(this)" />
+        <button id="clear-image-btn" onclick="clearImage()" style="display:none;margin-top:0.5rem;background:none;border:none;color:#6b7280;font-size:0.75rem;cursor:pointer;text-decoration:underline">Remove image</button>
+      </div>
+      <div class="flex flex-wrap gap-3 mb-2">
+        <button onclick="runAnalysis()" class="bg-yellow-btn text-gray-900 font-bold px-6 py-3 rounded-xl flex items-center gap-2" style="transition:background 0.2s">&#127909; Review the Play</button>
+        <button onclick="clearAnalysis()" class="bg-card-inner text-dim px-6 py-3 rounded-xl" style="transition:background 0.2s">Clear</button>
+      </div>
+      <div id="analyzer-results"></div>
+    </div>
+  </section>
+
+  <!-- X CTA -->
+  <section style="max-width:56rem" class="mx-auto px-4 py-16">
+    <div class="bg-card rounded-2xl p-8 md:p-10 text-center border-mid" style="border-width:1px; background: linear-gradient(to right, #1e293b, #334155)">
+      <div style="font-size:2.5rem" class="mb-4">&#120143; &#129419;</div>
+      <h2 class="text-white text-2xl font-bold mb-3">Follow @FallacyFlagHQ</h2>
+      <p class="text-dim mb-6" style="max-width:32rem; margin:0 auto 1.5rem">Daily fallacy calls and fair play awards. We break down the logic behind today's biggest political arguments in tweet-sized takedowns — no hot takes, just cold logic.</p>
+      <div class="flex flex-wrap justify-center gap-3">
+        <a href="https://x.com/FallacyFlagHQ" target="_blank" rel="noopener noreferrer" class="inline-block bg-white text-gray-900 font-bold px-8 py-3 rounded-xl" style="text-decoration:none; transition:background 0.2s">Follow on &#120143;</a>
+        <a href="https://bsky.app/profile/fallacyflaghq.bsky.social" target="_blank" rel="noopener noreferrer" class="inline-block text-white font-bold px-8 py-3 rounded-xl" style="text-decoration:none; transition:background 0.2s; background:#0085ff">Follow on &#129419;</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="border-dim py-10 mt-10" style="border-top-width:1px">
+    <div style="max-width:72rem" class="mx-auto px-4">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <img src="logo-color.png" alt="FallacyFlag" style="height:26px; width:auto" />
+          <span class="text-dimmer text-sm">Raising the flag on faulty reasoning.</span>
+        </div>
+        <div class="text-center md:text-right">
+          <p class="text-dimmer text-sm">Calling fouls and fair plays, not political sides. &copy; 2026 FallacyFlag. All rights reserved.</p>
+          <p class="text-dimmest text-xs mt-1">Identifying a fallacy &ne; saying the conclusion is wrong. Awarding Fair Play &ne; endorsing the conclusion.</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // ── MOBILE MENU ──
+    function toggleMobileMenu(){var m=document.getElementById('mobile-menu');var b=document.querySelector('.hamburger');m.classList.toggle('open');b.classList.toggle('open');document.body.style.overflow=m.classList.contains('open')?'hidden':''}
+
+    // ── IMAGE ANALYZER (admin only) ──
+    var _analyzerImageData=null; // base64 string
+    var _analyzerImageType=null; // mime type
+
+    function handleImageFile(file){
+      if(!file||!file.type.match(/^image\/(png|jpeg|webp)$/))return;
+      if(file.size>10*1024*1024){alert('Image too large. Max 10MB.');return}
+      var reader=new FileReader();
+      reader.onload=function(e){
+        var base64=e.target.result;
+        _analyzerImageType=file.type;
+        _analyzerImageData=base64.split(',')[1]; // strip data:image/...;base64, prefix
+        var preview=document.getElementById('image-preview');
+        preview.innerHTML='<img src="'+base64+'" style="max-height:200px;max-width:100%;border-radius:0.5rem;border:1px solid #334155" />';
+        preview.style.display='block';
+        document.getElementById('image-prompt').textContent='\u2705 Image loaded — ready to analyze';
+        document.getElementById('clear-image-btn').style.display='inline';
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function handleImageDrop(e){
+      var files=e.dataTransfer.files;
+      if(files.length)handleImageFile(files[0]);
+    }
+
+    function handleImageSelect(input){
+      if(input.files.length)handleImageFile(input.files[0]);
+    }
+
+    function clearImage(){
+      _analyzerImageData=null;
+      _analyzerImageType=null;
+      document.getElementById('image-preview').style.display='none';
+      document.getElementById('image-preview').innerHTML='';
+      document.getElementById('image-prompt').textContent='\u{1F4F7} Paste, drag, or click to upload a screenshot of an argument';
+      document.getElementById('clear-image-btn').style.display='none';
+      document.getElementById('image-file-input').value='';
+    }
+
+    // Listen for paste events on the whole page (admin only)
+    document.addEventListener('paste',function(e){
+      if(!ADMIN)return;
+      var items=e.clipboardData&&e.clipboardData.items;
+      if(!items)return;
+      for(var i=0;i<items.length;i++){
+        if(items[i].type.indexOf('image')!==-1){
+          var file=items[i].getAsFile();
+          if(file)handleImageFile(file);
+          break;
+        }
+      }
+    });
+
+    // ── ADMIN MODE ──
+    const _p=new URLSearchParams(window.location.search);
+    const _H='680efc46b1396d076174fba903618319ae17dbc64a676655f04eb84bafd9772f';
+    let ADMIN=sessionStorage.getItem('ff_admin')==='1';
+    if(ADMIN){var ab=document.getElementById('admin-bar');if(ab)ab.style.display='block';var iz=document.getElementById('analyzer-image-zone');if(iz)iz.style.display='block'}
+    if(_p.get('admin')==='flag2026'&&!ADMIN){const pw=prompt('Admin password:');if(pw){crypto.subtle.digest('SHA-256',new TextEncoder().encode(pw)).then(h=>{const hex=Array.from(new Uint8Array(h)).map(b=>b.toString(16).padStart(2,'0')).join('');if(hex===_H){sessionStorage.setItem('ff_admin','1');sessionStorage.setItem('ff_token',_p.get('admin'));location.replace(location.origin+location.pathname)}else{alert('Wrong password.')}})}}
+
+    // ── DATA ──
+    const FALLACIES={adHominem:{name:"Ad Hominem",emoji:"\u{1F94A}",short:"Attacking the person instead of their argument.",description:"Instead of addressing the substance of an argument, this fallacy attacks the character, motive, or personal traits of the person making it. Even terrible people can make valid points \u2014 and even wonderful people can make terrible ones.",example:"\"You can't trust her economic plan \u2014 she's never even run a business.\"",xHashtag:"#AdHominem"},strawMan:{name:"Straw Man",emoji:"\u{1F33E}",short:"Misrepresenting someone\u2019s argument to make it easier to attack.",description:"Rather than engaging with the actual position, this fallacy substitutes a distorted, exaggerated, or otherwise misrepresented version of it. Knocking down a scarecrow isn\u2019t the same as winning a fight.",example:"\"They want open borders and no immigration enforcement whatsoever.\"",xHashtag:"#StrawMan"},slipperySlope:{name:"Slippery Slope",emoji:"\u{1F3BF}",short:"Claiming one thing will inevitably lead to extreme consequences.",description:"This fallacy assumes that taking one step will trigger a chain reaction of increasingly extreme events, without evidence that each step necessarily follows from the last. It\u2019s the logical equivalent of claiming that buying a goldfish will inevitably lead to running a marine biology lab.",example:"\"If we ban this one weapon, next they'll take all our guns, then our free speech.\"",xHashtag:"#SlipperySlope"},falseDilemma:{name:"False Dilemma",emoji:"\u2696\uFE0F",short:"Presenting only two options when more exist.",description:"Also called a false binary or black-and-white thinking. Complex issues almost always have more than two possible positions, but this fallacy pretends otherwise to force you into a corner. Reality has more than two doors \u2014 this fallacy just hides the rest.",example:"\"You either support this bill completely or you don't care about veterans.\"",xHashtag:"#FalseDilemma"},appealToAuthority:{name:"Appeal to Authority",emoji:"\u{1F468}\u200D\u2696\uFE0F",short:"Using an authority figure\u2019s opinion as proof, especially outside their expertise.",description:"Expert opinion matters, but it isn\u2019t proof by itself \u2014 especially when the \u2018expert\u2019 is opining outside their field. Your dentist may be brilliant, but that doesn\u2019t make them a constitutional scholar.",example:"\"This billionaire CEO says the policy is bad, so it must be.\"",xHashtag:"#AppealToAuthority"},bandwagon:{name:"Bandwagon / Ad Populum",emoji:"\u{1F682}",short:"Arguing something is true because many people believe it.",description:"Popularity isn\u2019t proof. Millions of people can be wrong about something, and consensus alone doesn\u2019t make an argument logically valid. If it did, the earth would have been flat for most of human history.",example:"\"Seventy percent of Americans agree with me, so obviously I'm right.\"",xHashtag:"#Bandwagon"},redHerring:{name:"Red Herring",emoji:"\u{1F41F}",short:"Introducing an irrelevant topic to divert attention.",description:"When the heat is on, some arguers change the subject to something emotionally compelling but totally unrelated to the actual issue at hand.",example:"\"Why are we talking about the budget deficit when there are potholes on Main Street?\"",xHashtag:"#RedHerring"},tuQuoque:{name:"Tu Quoque (Whataboutism)",emoji:"\u{1FA83}",short:"Deflecting criticism by pointing to someone else\u2019s behavior.",description:"\"But what about...\" doesn\u2019t address whether the original criticism is valid. Two wrongs don\u2019t make a right.",example:"\"Sure, our guy lied, but what about when their guy lied three years ago?\"",xHashtag:"#Whataboutism"},appealToEmotion:{name:"Appeal to Emotion",emoji:"\u{1F622}",short:"Using emotional manipulation in place of logical reasoning.",description:"Emotions are valid and important, but they aren\u2019t arguments. Tugging heartstrings or stoking outrage to bypass rational analysis is a classic move.",example:"\"Think of the children! How could you possibly vote against this?\"",xHashtag:"#AppealToEmotion"},hastyGeneralization:{name:"Hasty Generalization",emoji:"\u{1F3C3}",short:"Drawing broad conclusions from limited evidence.",description:"Taking a small sample \u2014 often a single anecdote \u2014 and using it to make sweeping claims about an entire group or situation. A sample size of one is a story, not a dataset.",example:"\"I met one rude person from that state, so everyone there must be rude.\"",xHashtag:"#HastyGeneralization"},noTrueScotsman:{name:"No True Scotsman",emoji:"\u{1F3F4}\u{E0067}\u{E0062}\u{E0073}\u{E0063}\u{E0074}\u{E007F}",short:"Redefining a group to exclude counterexamples.",description:"When faced with evidence that contradicts a generalization, this fallacy moves the goalposts by redefining who \"really\" counts as a member of the group. It\u2019s an unfalsifiable membership club with an ever-shifting dress code.",example:"\"No real patriot would question military spending.\"",xHashtag:"#NoTrueScotsman"},circularReasoning:{name:"Circular Reasoning",emoji:"\u{1F504}",short:"Using the conclusion as a premise of the argument.",description:"The argument goes in a circle: the thing being proven is assumed in the premise. It sounds like reasoning but actually just restates itself. It\u2019s the intellectual equivalent of citing your own diary as a peer-reviewed source.",example:"\"This policy is the best because no policy is better.\"",xHashtag:"#CircularReasoning"}};
+
+    const FEATURED_ANALYSES=[];
+
+    // Normalize fallacy type keys from API — handles snake_case, spaces, lowercase, etc.
+    const _FALLACY_ALIAS=(()=>{const m={};Object.keys(FALLACIES).forEach(k=>{m[k]=k;m[k.toLowerCase()]=k});m['ad_hominem']='adHominem';m['straw_man']='strawMan';m['strawman']='strawMan';m['slippery_slope']='slipperySlope';m['slipperyslope']='slipperySlope';m['false_dilemma']='falseDilemma';m['falsedilemma']='falseDilemma';m['appeal_to_authority']='appealToAuthority';m['appealtoauthority']='appealToAuthority';m['red_herring']='redHerring';m['redherring']='redHerring';m['tu_quoque']='tuQuoque';m['tuquoque']='tuQuoque';m['whataboutism']='tuQuoque';m['appeal_to_emotion']='appealToEmotion';m['appealtoemotion']='appealToEmotion';m['hasty_generalization']='hastyGeneralization';m['hastygeneralization']='hastyGeneralization';m['no_true_scotsman']='noTrueScotsman';m['notruescotsman']='noTrueScotsman';m['circular_reasoning']='circularReasoning';m['circularreasoning']='circularReasoning';m['fair_play']='fairPlay';m['fairplay']='fairPlay';m['ad hominem']='adHominem';m['straw man']='strawMan';m['slippery slope']='slipperySlope';m['false dilemma']='falseDilemma';m['appeal to authority']='appealToAuthority';m['red herring']='redHerring';m['tu quoque']='tuQuoque';m['appeal to emotion']='appealToEmotion';m['hasty generalization']='hastyGeneralization';m['no true scotsman']='noTrueScotsman';m['circular reasoning']='circularReasoning';m['fair play']='fairPlay';m['bandwagon / ad populum']='bandwagon';m['ad populum']='bandwagon';m['bandwagon/ad populum']='bandwagon';m['adpopulum']='bandwagon';m['strawmanargument']='strawMan';m['strawman_argument']='strawMan';m['cherrypickingdata']='hastyGeneralization';m['cherry_picking_data']='hastyGeneralization';m['cherrypicking']='hastyGeneralization';m['cherry_picking']='hastyGeneralization';m['posthocfallacy']='circularReasoning';m['post_hoc_fallacy']='circularReasoning';m['posthoc']='circularReasoning';m['post_hoc']='circularReasoning';m['loadedlanguage']='appealToEmotion';m['loaded_language']='appealToEmotion';m['hyperbole']='appealToEmotion';m['overstatement']='appealToEmotion';m['exaggeration']='appealToEmotion';m['emotionalappeal']='appealToEmotion';m['emotional_appeal']='appealToEmotion';m['falseequivalence']='falseDilemma';m['false_equivalence']='falseDilemma';m['falseanalogy']='falseDilemma';m['false_analogy']='falseDilemma';m['movingthegoalposts']='noTrueScotsman';m['moving_the_goalposts']='noTrueScotsman';m['poisoningthewell']='adHominem';m['poisoning_the_well']='adHominem';m['geneticfallacy']='adHominem';m['genetic_fallacy']='adHominem';m['beggingthequestion']='circularReasoning';m['begging_the_question']='circularReasoning';return m})();
+    function _nft(t){if(!t)return t;const k=_FALLACY_ALIAS[t]||_FALLACY_ALIAS[t.toLowerCase()];return k||t}
+
+    // Extract a sortable ISO-ish date from a card.
+    // Order of preference: legacy .date (YYYY-MM-DD) → .created_at (ISO timestamp prefix) →
+    // .period ("Month YYYY") → parsed from .context prose. Used for sort, not display.
+    const _MONTHS={january:'01',february:'02',march:'03',april:'04',may:'05',june:'06',july:'07',august:'08',september:'09',october:'10',november:'11',december:'12'};
+    function _cardDate(a){
+      if(a.date)return a.date;
+      if(a.created_at)return a.created_at.slice(0,10);
+      if(a.period){var pm=a.period.match(/^(\w+)\s+(\d{4})$/);if(pm){var pmo=_MONTHS[pm[1].toLowerCase()];if(pmo)return pm[2]+'-'+pmo+'-15'}}
+      if(!a.context)return'0000-00-00';
+      var m=a.context.match(/(\w+)\s+(\d{1,2}),?\s*(\d{4})/);
+      if(m){var mo=_MONTHS[m[1].toLowerCase()];if(mo)return m[3]+'-'+mo+'-'+m[2].padStart(2,'0')}
+      var m2=a.context.match(/(\w+)\s+(\d{4})/);
+      if(m2){var mo2=_MONTHS[m2[1].toLowerCase()];if(mo2)return m2[2]+'-'+mo2+'-15'}
+      return'0000-00-00';
+    }
+
+    // Build structured tweet from card data
+    const TWEET_FALLACY_NAMES={adHominem:'AD HOMINEM',strawMan:'STRAW MAN',slipperySlope:'SLIPPERY SLOPE',falseDilemma:'FALSE DILEMMA',appealToAuthority:'APPEAL TO AUTHORITY',bandwagon:'BANDWAGON',redHerring:'RED HERRING',tuQuoque:'TU QUOQUE',appealToEmotion:'APPEAL TO EMOTION',hastyGeneralization:'HASTY GENERALIZATION',noTrueScotsman:'NO TRUE SCOTSMAN',circularReasoning:'CIRCULAR REASONING',cherryPicking:'CHERRY PICKING',postHocFallacy:'POST HOC FALLACY',loadedLanguage:'LOADED LANGUAGE',hyperbole:'HYPERBOLE',fairPlay:'FAIR PLAY'};
+    const SEV_LINE={green:'\u{1F7E9} Fair Play',yellow:'\u{1F7E8} Yellow Card',red:'\u{1F7E5} Red Card'};
+    function buildTweet(a,base){
+      const speaker=a.speaker.replace(/^President /,'');
+      const header=speaker+', '+a.context;
+      const isFP=a.severity==='green';
+      const fallacyLine=a.fallacies.map(function(f){const ft=_nft(f.type);const emoji=isFP?'\u26BD':(FALLACIES[ft]?FALLACIES[ft].emoji:'\u26A0\uFE0F');const name=TWEET_FALLACY_NAMES[ft]||ft.replace(/([A-Z])/g,' $1').toUpperCase().trim();return emoji+' '+name}).join(' + ');
+      const q=a.quote.length>200?a.quote.substring(0,197)+'...':a.quote;
+      // Per-fallacy breakdown with analysis
+      const breakdown=a.fallacies.map(function(f){
+        const ft=_nft(f.type);
+        const emoji=isFP?'\u26BD':(FALLACIES[ft]?FALLACIES[ft].emoji:'\u26A0\uFE0F');
+        const name=TWEET_FALLACY_NAMES[ft]||ft.replace(/([A-Z])/g,' $1').toUpperCase().trim();
+        const analysis=f.analysis||'';
+        return emoji+' '+name+'\n'+analysis;
+      }).join('\n\n');
+      const sev=SEV_LINE[a.severity]||'';
+      const link=base+a.id;
+      return header+'\n\n'+sev+'\n\n\u201C'+q+'\u201D\n\n'+breakdown+'\n\nFull analysis \u2192 '+link+'\n\n#FallacyFlag #CriticalThinking #Rhetoric';
+    }
+    FEATURED_ANALYSES.forEach(function(a){a.tweetVersion=buildTweet(a,'https://fallacyflag.com/#analysis-');a.bskyVersion=buildBsky(a,'https://fallacyflag.com/#analysis-')});
+
+    const DETECTION_PATTERNS=[{patterns:[/you('re| are) (just|only|nothing but)/i,/what do (you|they) know about/i,/has no (experience|credibility|right)/i,/coming from (someone|a person) who/i,/can('t| not) be trusted because/i,/consider the source/i,/look who('s| is) talking/i,/never even (run|managed|worked|held)/i],fallacy:"adHominem",confidence:"high"},{patterns:[/so (you('re| are)|they('re| are)) saying/i,/what (you|they) really (want|mean)/i,/wants? to (destroy|eliminate|abolish|ban all|end all)/i,/basically (wants?|saying)/i,/hand the keys/i,/their (real|true|actual) (agenda|plan|goal)/i],fallacy:"strawMan",confidence:"high"},{patterns:[/next thing you know/i,/before (long|you know it)/i,/where does it (end|stop)/i,/slippery slope/i,/if we (allow|let|permit).*then.*then/i,/open the (door|floodgates)/i,/first.*then.*then/i,/lead(s)? to.*which leads? to/i,/won('t| will not) stop (at|there|with)/i],fallacy:"slipperySlope",confidence:"high"},{patterns:[/either.*or/i,/you('re| are) either (with|for|against)/i,/(only|just) two (options|choices|ways)/i,/if you don('t| not).*then you/i,/it('s| is) (simple|binary|black and white)/i,/pick a side/i,/there('s| is) no middle ground/i,/you (must|have to) (choose|decide|pick)/i],fallacy:"falseDilemma",confidence:"high"},{patterns:[/experts? (say|agree|confirm|believe)/i,/according to (dr\.|professor|the ceo|the founder)/i,/even .+ (agrees?|says?|thinks?)/i,/\b(nobel|award[- ]winning|renowned)\b.*says?/i,/trust (the )?science/i,/scientists? (say|agree)/i],fallacy:"appealToAuthority",confidence:"medium"},{patterns:[/every(one|body) (knows|agrees|thinks|says)/i,/most (people|americans|voters)/i,/\d+%? (of|percent).*agree/i,/the (majority|masses|public)/i,/popular (opinion|consensus|support)/i,/millions (of people|agree)/i,/the american people (want|support|agree|demand)/i,/the people have spoken/i],fallacy:"bandwagon",confidence:"high"},{patterns:[/what about/i,/but (they|he|she|the other side|your side|democrats|republicans) (also|did|were)/i,/look at what .+ did/i,/they('re| are) (just as|no) (bad|better|worse)/i,/have no room to talk/i,/pot calling the kettle/i,/glass house/i,/before you point fingers/i,/how (can|dare) (you|they) (talk|say|criticize)/i],fallacy:"tuQuoque",confidence:"high"},{patterns:[/think (of|about) the (children|families|victims|troops|elderly)/i,/how (could|can|dare) you/i,/have you no (shame|decency|heart)/i,/(heartless|cruel|monstrous|disgusting|unconscionable)/i,/blood on (your|their) hands/i,/people (will|are going to) die/i,/sleep at night/i,/moral (duty|obligation|imperative)/i],fallacy:"appealToEmotion",confidence:"medium"},{patterns:[/I (met|talked to|know|heard from) (a|one|this)/i,/one (example|case|instance|person|story)/i,/proves? (that|this|it)/i,/all .+ are (like|just|the same)/i,/every (single )?one of them/i,/always|never\b/i,/that('s| is) (just )?how (they|those people|that group)/i],fallacy:"hastyGeneralization",confidence:"medium"},{patterns:[/no (true|real|genuine)/i,/not (really|truly) a/i,/(real|true|genuine) (patriot|american|christian|progressive|conservative)/i,/if you (were|are) (really|truly) a/i,/that('s| is) not what (a real|a true)/i],fallacy:"noTrueScotsman",confidence:"high"},{patterns:[/because (it('s| is)|that('s| is)) (true|right|correct|obvious)/i,/it('s| is) (true|right) because/i,/speaks? for itself/i,/self[- ]evident/i,/goes without saying/i,/the (best|worst) because.*(best|worst)/i,/is what it is/i],fallacy:"circularReasoning",confidence:"medium"},{patterns:[/(but|anyway|however|speaking of|that reminds me),? (what about|let('s| us) talk about|the real issue)/i,/the (real|bigger|actual|important) (issue|problem|question|point)/i,/why (are|aren't) we talking about/i,/forget about that/i,/let('s| us) not (forget|ignore)/i,/meanwhile/i,/more important(ly)?/i],fallacy:"redHerring",confidence:"medium"}];
+
+    function analyzeText(t){if(!t||t.trim().length<10)return[];const r=[],s=new Set;for(const rule of DETECTION_PATTERNS){if(s.has(rule.fallacy))continue;for(const p of rule.patterns){if(p.test(t)){const m=t.match(p);s.add(rule.fallacy);r.push({fallacy:FALLACIES[rule.fallacy],key:rule.fallacy,confidence:rule.confidence,matchedText:m?m[0]:""});break}}}return r}
+    function generateTweet(t,r,severity){if(!r.length)return"";const q=t.length>200?t.substring(0,197)+'...':t;const fallacyCount=r.filter(function(x){return!x.key||x.key!=='fairPlay'}).length;const countLabel=severity==='green'?'':' - '+fallacyCount+' logical fallac'+(fallacyCount===1?'y':'ies')+' found';const sev=severity==='red'?'\u{1F7E5} Red Card'+countLabel:severity==='green'?'\u{1F7E9} Fair Play':'\u{1F7E8} Yellow Card'+countLabel;const breakdown=r.map(function(x){const emoji=x.fallacy?x.fallacy.emoji:'\u26A0\uFE0F';const name=x.fallacy?x.fallacy.name.toUpperCase():'UNKNOWN';const analysis=x.analysis||'';return emoji+' '+name+'\n'+analysis}).join('\n\n');return sev+'\n\n\u201C'+q+'\u201D\n\n'+breakdown+'\n\n#FallacyFlag #CriticalThinking #Rhetoric\n\nhttps://fallacyflag.com'}
+
+    // ── BLUESKY POST GENERATOR (300 char limit) ──
+    function _bskyTruncate(text,max){return text.length<=max?text:text.substring(0,max-3)+'...'}
+    function buildBsky(a,base){
+      var isFP=a.severity==='green';
+      var sev=isFP?'\u26BD Fair Play':a.severity==='red'?'\u{1F7E5} Red Card':'\u{1F7E8} Yellow Card';
+      var names=a.fallacies.map(function(f){var ft=_nft(f.type);return isFP?'Sound Reasoning':(FALLACIES[ft]?FALLACIES[ft].name:ft)}).join(' + ');
+      var link=base+a.id;
+      var tail='\n\n'+names+'\n\nFull analysis \u2192 '+link+'\n#FallacyFlag';
+      var budget=300-sev.length-tail.length-6;
+      var q=_bskyTruncate(a.quote,Math.max(budget,50));
+      return sev+'\n\n\u201C'+q+'\u201D'+tail;
+    }
+    function generateBsky(t,r,severity){
+      if(!r.length)return"";
+      var isFP=severity==='green';
+      var sev=isFP?'\u26BD Fair Play':severity==='red'?'\u{1F7E5} Red Card':'\u{1F7E8} Yellow Card';
+      var names=r.map(function(x){return x.fallacy?x.fallacy.name:'Unknown'}).join(' + ');
+      var tail='\n\n'+names+'\n\nFull analysis \u2192 fallacyflag.com\n#FallacyFlag';
+      var budget=300-sev.length-tail.length-6;
+      var q=_bskyTruncate(t,Math.max(budget,50));
+      return sev+'\n\n\u201C'+q+'\u201D'+tail;
+    }
+    function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;')}
+    function fmtQuote(s){
+      var t=esc(s);
+      // Break before ALL-CAPS speaker labels like "TRUMP:", "BIDEN:", "Q:", "A:"
+      t=t.replace(/(\?\s*)((?:TRUMP|BIDEN|HARRIS|OBAMA|VANCE|PENCE|A):?\s)/g,'$1<br><br>$2');
+      t=t.replace(/((?:^|[.?!]\s*))(?=(?:Q|QUESTION|REPORTER):\s)/g,'$1<br><br>');
+      t=t.replace(/(\S)\s+((?:TRUMP|BIDEN|HARRIS|OBAMA|VANCE|PENCE):\s)/g,'$1<br><br>$2');
+      // Break before mixed-case named responses after a question mark
+      t=t.replace(/(\?\u201D?\s*)((?:[A-Z][a-z]+(?:\u2019s)?[\s]+)?(?:Trump|Biden|Harris|Obama|Vance|President|Sen\.|Rep\.|Gov\.)[^:]*:\s*\u201C?)/g,'$1<br><br>$2');
+      // Also handle explicit newlines stored in data
+      t=t.replace(/\n\s*\n/g,'<br><br>').replace(/\n/g,'<br>');
+      t=t.replace(/(<br>){2,}/g,'</p><p style="margin-top:0.6rem">');
+      // Clean up any leading line breaks
+      t=t.replace(/^(<br>)+/,'');
+      return t;
+    }
+
+    // ── TOPIC FILTERING & PAGINATION ──
+    let activeTopic='All';
+    const CARDS_PER_PAGE=12;
+    let showAllCards=false;
+    const HIDE_IDS=[5001,5002,1001,1002,1003,1004,1005,1006,1007,1008];
+    function buildTopicFilters(){
+      const visible=FEATURED_ANALYSES.filter(a=>!HIDE_IDS.includes(a.id)).sort((a,b)=>_cardDate(b).localeCompare(_cardDate(a))).slice(0,CARDS_PER_PAGE);
+      const counts={};
+      visible.forEach(a=>{if(a.topics)a.topics.forEach(t=>{counts[t]=(counts[t]||0)+1})});
+      const sorted=Object.keys(counts).sort();
+      const fc=document.getElementById('topic-filters');
+      let h='<button class="topic-btn active" onclick="filterTopic(\'All\',this)">All<span class="topic-count">'+visible.length+'</span></button>';
+      sorted.forEach(t=>{h+='<button class="topic-btn" onclick="filterTopic(\''+t+'\',this)">'+t+'<span class="topic-count">'+counts[t]+'</span></button>'});
+      fc.innerHTML=h
+    }
+    function filterTopic(topic,btn){
+      activeTopic=topic;
+      showAllCards=false;
+      document.querySelectorAll('.topic-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      renderAnalyses()
+    }
+    function showMoreCards(){window.location.href='archive.html'}
+
+    // ── RENDER ──
+function mapRuling(f){const COLOR_TO_RULING={yellow:{cherryPickingData:'HANDBALL',postHocFallacy:'OFFSIDE',hyperbole:'ENCROACHMENT',loadedLanguage:'SHIRT PULL',default:'OFFSIDE'},red:{strawmanArgument:'SIMULATION',loadedLanguage:'VIOLENT CONDUCT',default:'PROFESSIONAL FOUL'},green:{fairPlay:'FAIR PLAY',default:'FAIR PLAY'}};if(!['yellow','red','green'].includes(f.ruling))return f.ruling;const m=COLOR_TO_RULING[f.ruling];return(m&&m[f.type])||m.default||f.ruling}
+        function renderAnalyses(){
+      const c=document.getElementById('analyses-container');let h='';
+      const allFiltered=(activeTopic==='All'?FEATURED_ANALYSES.filter(a=>!HIDE_IDS.includes(a.id)):FEATURED_ANALYSES.filter(a=>!HIDE_IDS.includes(a.id)).filter(a=>a.topics&&a.topics.includes(activeTopic))).sort((a,b)=>_cardDate(b).localeCompare(_cardDate(a)));
+      const filtered=showAllCards?allFiltered:allFiltered.slice(0,CARDS_PER_PAGE);
+      const hasMore=!showAllCards&&allFiltered.length>CARDS_PER_PAGE;
+      filtered.forEach((a,idx)=>{
+        let badge,findingBorder,quoteColor;
+        if(a.severity==='green'){badge='<span class="badge-green">\u26BD FAIR PLAY</span>';findingBorder='finding-border-green';quoteColor='border-color:#16a34a'}
+        else if(a.severity==='red'){badge='<span class="badge-red">\u{1F7E5} RED CARD</span>';findingBorder='finding-border-red';quoteColor='border-color:#e53935'}
+        else{badge='<span class="badge-yellow">\u{1F7E8} YELLOW CARD</span>';findingBorder='finding-border-yellow';quoteColor='border-color:#facf39'}
+        let topicTags='';
+        if(a.topics){a.topics.forEach(t=>{topicTags+='<span class="topic-tag">'+t+'</span> '})}
+        let ff='';
+        a.fallacies.forEach(f=>{
+          const ft=_nft(f.type);
+          const isFairPlay=ft==='fairPlay';
+          const nameColor=isFairPlay?'color:#4ade80':'color:#facf39';
+          const emoji=isFairPlay?'\u2705':(FALLACIES[ft]?FALLACIES[ft].emoji:'\u26A0\uFE0F');
+          const name=isFairPlay?'Sound Reasoning':(FALLACIES[ft]?FALLACIES[ft].name:ft.replace(/([A-Z])/g,' $1').replace(/^./,function(s){return s.toUpperCase()}).trim());
+          ff+='<div class="bg-card-inner rounded-lg p-4 '+findingBorder+'"><div class="flex items-center gap-2 mb-2 flex-wrap"><span style="font-size:1.2rem">'+emoji+'</span><span style="font-weight:700;'+nameColor+'">'+name+'</span><span class="bg-tag-dim text-dim text-xs px-2 py-1 rounded-full" style="margin-left:auto">'+mapRuling(f)+'</span></div><p class="text-dim text-sm">'+f.analysis+'</p></div>'
+        });
+        const tweetEsc=esc(a.tweetVersion);
+        h+='<div id="analysis-'+a.id+'" class="bg-card analysis-card border-mid rounded-xl overflow-hidden mb-6" style="border-width:1px"><div class="p-6"><div class="flex items-start justify-between mb-4 flex-wrap gap-2"><div style="display:flex;align-items:center;gap:0.75rem"><div class="text-yellow font-bold rounded-full flex items-center justify-center bg-card-inner" style="width:2.5rem;height:2.5rem;font-size:1.1rem;border:2px solid '+(a.severity==='green'?'#16a34a':a.severity==='red'?'#e53935':'#ca8a04')+';color:'+(a.severity==='green'?'#4ade80':a.severity==='red'?'#f87171':'#facf39')+'">'+(idx+1)+'</div><div><p class="text-dim text-sm" style="font-style:italic">'+a.context+'</p><p class="text-dimmer text-sm">'+a.speaker+'</p></div></div>'+badge+'</div>'+(topicTags?'<div class="mb-3" style="display:flex;gap:0.4rem;flex-wrap:wrap">'+topicTags+'</div>':'')+'<blockquote class="text-white text-lg mb-5 pl-4" style="border-left:4px solid;'+quoteColor+';line-height:1.7">\u201C'+fmtQuote(a.quote)+'\u201D</blockquote><div style="display:flex;flex-direction:column;gap:0.75rem">'+ff+'</div><div class="mt-4" style="display:flex;gap:1rem;align-items:center">'+(ADMIN?'<button onclick="toggleTweet('+a.id+')" class="text-dim text-sm" style="background:none;border:none;transition:color 0.2s" onmouseover="this.style.color=\'#60a5fa\'" onmouseout="this.style.color=\'#9ca3af\'">&#120143; <span id="tt-'+a.id+'">Show</span> post version</button>':'')+(ADMIN?'<button onclick="toggleBsky('+a.id+')" class="text-dim text-sm" style="background:none;border:none;transition:color 0.2s" onmouseover="this.style.color=\'#60a5fa\'" onmouseout="this.style.color=\'#9ca3af\'">\u{1F98B} <span id="bt-'+a.id+'">Show</span> Bluesky version</button>':'')+'<button onclick="shareLink('+a.id+')" class="text-dim text-sm" style="background:none;border:none;transition:color 0.2s" onmouseover="this.style.color=\'#60a5fa\'" onmouseout="this.style.color=\'#9ca3af\'">&#128279; <span id="sl-'+a.id+'">Share link</span></button></div>'+(ADMIN?'<div id="tb-'+a.id+'" style="display:none" class="mt-3 bg-card-inner rounded-lg p-4 border-mid" style="border-width:1px"><p class="text-dim text-sm tweet-box bg-card-deep rounded-lg p-4">'+tweetEsc+'</p><button onclick="copyEl(\'tc-'+a.id+'\')" class="mt-2 text-xs bg-tag-dim text-dim px-3 py-1 rounded" style="border:none;transition:background 0.2s">Copy to clipboard</button><span id="tc-'+a.id+'" style="display:none">'+a.tweetVersion+'</span></div>':'')+(ADMIN?'<div id="bb-'+a.id+'" style="display:none" class="mt-3 bg-card-inner rounded-lg p-4 border-mid" style="border-width:1px"><div class="flex items-center justify-between mb-2"><span class="text-dimmer text-xs">\u{1F98B} Bluesky</span><span class="text-dimmer text-xs">'+esc(a.bskyVersion||'').length+'/300</span></div><p class="text-dim text-sm tweet-box bg-card-deep rounded-lg p-4">'+esc(a.bskyVersion||'')+'</p><button onclick="copyEl(\'bc-'+a.id+'\')" class="mt-2 text-xs bg-tag-dim text-dim px-3 py-1 rounded" style="border:none;transition:background 0.2s">Copy to clipboard</button><span id="bc-'+a.id+'" style="display:none">'+(a.bskyVersion||'')+'</span></div>':'')+'</div></div>'
+      });
+      if(hasMore){h+='<div class="text-center py-6"><a href="archive.html" class="bg-card text-yellow font-bold px-8 py-3 rounded-xl border-mid" style="border-width:1px;transition:all 0.2s;text-decoration:none;display:inline-block" onmouseover="this.style.borderColor=\'#facf39\'" onmouseout="this.style.borderColor=\'#475569\'">View Full Archive \u2192</a><p class="text-dimmer text-sm mt-2">Showing '+CARDS_PER_PAGE+' most recent of '+allFiltered.length+' total</p></div>'}
+      if(!allFiltered.length){h='<div class="text-center py-12"><p class="text-dim text-lg">New cards coming soon.</p><p class="text-dimmer text-sm mt-2">We\u2019re upgrading to source-verified political quotes \u2014 check back shortly.</p></div>'}
+      c.innerHTML=h
+    }
+
+    function toggleTweet(id){const b=document.getElementById('tb-'+id),t=document.getElementById('tt-'+id);if(b.style.display==='none'){b.style.display='block';t.textContent='Hide'}else{b.style.display='none';t.textContent='Show'}}
+    function toggleBsky(id){const b=document.getElementById('bb-'+id),t=document.getElementById('bt-'+id);if(b.style.display==='none'){b.style.display='block';t.textContent='Hide'}else{b.style.display='none';t.textContent='Show'}}
+    function copyEl(id){const e=document.getElementById(id);if(e&&navigator.clipboard)navigator.clipboard.writeText(e.textContent)}
+    function shareLink(id){const url=window.location.origin+'/#analysis-'+id;navigator.clipboard.writeText(url).then(()=>{const s=document.getElementById('sl-'+id);s.textContent='Copied!';setTimeout(()=>{s.textContent='Share link'},2000)})}
+
+    function renderFallacyGrid(){const g=document.getElementById('fallacy-grid');let h='';for(const[k,f]of Object.entries(FALLACIES)){h+='<div class="bg-card-inner border-mid rounded-lg p-4 fallacy-grid-card" style="border-width:1px" onclick="showDetail(\''+k+'\')"><div class="flex items-center gap-2 mb-2"><span style="font-size:1.5rem">'+f.emoji+'</span><h4 class="text-yellow font-bold">'+f.name+'</h4></div><p class="text-dim text-sm">'+f.short+'</p></div>'}g.innerHTML=h}
+
+    function showDetail(k){const f=FALLACIES[k],g=document.getElementById('fallacy-grid'),d=document.getElementById('fallacy-detail');g.style.display='none';d.style.display='block';d.innerHTML='<button onclick="hideDetail()" class="text-dim mb-6 flex items-center gap-2" style="background:none;border:none;font-size:1rem;transition:color 0.2s" onmouseover="this.style.color=\'#fff\'" onmouseout="this.style.color=\'#9ca3af\'">\u2190 Back to all fallacies</button><div class="bg-card-inner border-mid rounded-xl p-6" style="border-width:1px"><div class="flex items-center gap-3 mb-3"><span style="font-size:1.75rem">'+f.emoji+'</span><div><h3 class="text-yellow text-xl font-bold">'+f.name+'</h3><p class="text-dim text-sm" style="font-style:italic">'+f.short+'</p></div></div><p class="text-dim mb-3" style="line-height:1.7">'+f.description+'</p><div class="bg-card-deep rounded-lg p-3" style="border-left:4px solid #facf39"><p class="text-dimmer text-sm" style="font-family:monospace">'+f.example+'</p></div></div>'}
+    function hideDetail(){document.getElementById('fallacy-grid').style.display='';document.getElementById('fallacy-detail').style.display='none'}
+
+    async function runAnalysis(){
+      const input=document.getElementById('analyzer-input').value;
+      const hasImage=ADMIN&&_analyzerImageData;
+      if(!input.trim()&&!hasImage)return;
+      const c=document.getElementById('analyzer-results');
+      const btn=document.querySelector('[onclick="runAnalysis()"]');
+      // Show loading state
+      btn.disabled=true;btn.textContent='\u231B Analyzing...';
+      c.innerHTML='<div style="border-top:1px solid #1f2937;padding-top:1.5rem;margin-top:1.5rem" class="text-center py-8"><div class="mb-3" style="font-size:2rem">\u{1F50D}</div><p class="text-dim">Reviewing the play...</p><p class="text-dimmer text-sm mt-2">Running a deep analysis \u2014 checking the logic, not just the keywords.</p></div>';
+
+      try{
+        const payload={text:input,admin:!!ADMIN};
+        if(hasImage){payload.image=_analyzerImageData;payload.imageType=_analyzerImageType}
+        const resp=await fetch('/api/analyze-text',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+        const data=await resp.json();
+        if(!resp.ok)throw new Error(data.error||'Analysis failed');
+
+        const isFairPlay=data.severity==='green';
+        const fallacies=data.fallacies||[];
+        const summary=data.summary||'';
+
+        // Map API fallacy types to our FALLACIES object for emoji/name lookup
+        const mappedResults=fallacies.map(f=>{
+          const key=_nft(f.type)||f.type;
+          const info=FALLACIES[key]||{name:f.type,emoji:'\u{1F6A9}'};
+          return{...f,key:key,fallacy:info};
+        });
+
+        if(isFairPlay){
+          const fpQuote=input.length>80?input.slice(0,77)+'...':input;
+          const fpAnalysis=(mappedResults.length&&mappedResults[0].analysis)?mappedResults[0].analysis:'';
+          const fpTweet='\u26BD FAIR PLAY awarded!\n\n\u201C'+fpQuote+'\u201D\n\n'+summary+(fpAnalysis?'\n\n'+fpAnalysis:'')+'\n\n#FallacyFlag #FairPlay #CriticalThinking\nhttps://fallacyflag.com';
+          let h='<div style="border-top:1px solid #1f2937;padding-top:1.5rem;margin-top:1.5rem" class="text-center py-8"><span style="font-size:3rem;display:block;margin-bottom:0.75rem">\u2705</span><h4 class="text-green-accent text-xl font-bold mb-2">Fair Play!</h4>';
+          h+='<p class="text-dim mb-4" style="max-width:32rem;margin:0 auto">'+esc(summary)+'</p>';
+          if(mappedResults.length&&mappedResults[0].analysis){h+='<div class="bg-card-inner rounded-xl p-5 text-left mx-auto" style="max-width:32rem;border-left:4px solid #16a34a"><p class="text-dim text-sm" style="line-height:1.7">'+esc(mappedResults[0].analysis)+'</p></div>'}
+          h+='<p class="text-dimmer text-sm mt-4" style="font-style:italic">Fair Play means the reasoning is sound \u2014 not that the conclusion is gospel. You\u2019re still allowed to disagree.</p></div>';
+          if(ADMIN){h+='<div class="bg-card-inner border-mid rounded-xl p-5 mt-3 text-left" style="border-width:1px"><div class="flex items-center gap-2 mb-3"><span>&#120143;</span><strong class="text-dim" style="font-size:0.9rem">Ready-to-post version</strong></div><p class="text-dim text-sm tweet-box bg-card-deep p-4 rounded-lg" style="white-space:pre-wrap">'+esc(fpTweet)+'</p><button onclick="copyEl(\'fp-text\')" class="mt-3 text-sm bg-tag-dim text-dim px-4 py-2 rounded-lg" style="border:none;transition:background 0.2s">Copy to clipboard</button><span id="fp-text" style="display:none">'+fpTweet+'</span></div>'}
+          if(ADMIN){var fpBsky=generateBsky(input,mappedResults,'green');h+='<div class="bg-card-inner border-mid rounded-xl p-5 mt-3 text-left" style="border-width:1px"><div class="flex items-center gap-2 mb-3"><span style="font-size:1.1rem">\u{1F98B}</span><strong class="text-dim" style="font-size:0.9rem">Bluesky version</strong><span class="text-dimmer text-xs" style="margin-left:auto">'+fpBsky.length+'/300</span></div><p class="text-dim text-sm tweet-box bg-card-deep p-4 rounded-lg" style="white-space:pre-wrap">'+esc(fpBsky)+'</p><button onclick="copyEl(\'fp-bsky-text\')" class="mt-3 text-sm bg-tag-dim text-dim px-4 py-2 rounded-lg" style="border:none;transition:background 0.2s">Copy to clipboard</button><span id="fp-bsky-text" style="display:none">'+fpBsky+'</span></div>'}
+          c.innerHTML=h;
+          window._lastAnalysis={input:input,results:mappedResults,severity:'green',tweet:fpTweet};
+        }else{
+          const sevLabel=data.severity==='red'?'Red Card':'Yellow Card';
+          const sevEmoji=data.severity==='red'?'\u{1F7E5}':'\u{1F7E8}';
+          const sevColor=data.severity==='red'?'text-red-accent':'text-yellow';
+          const count=mappedResults.filter(f=>f.type!=='fairPlay').length;
+          const tweet=generateTweet(input,mappedResults,data.severity);
+
+          let h='<div style="border-top:1px solid #1f2937;padding-top:1.5rem;margin-top:1.5rem">';
+          // Summary header
+          h+='<div class="flex items-center gap-3 mb-3"><span style="font-size:1.6rem">'+sevEmoji+'</span><h4 class="'+sevColor+' text-xl font-bold">'+sevLabel+' \u2014 '+count+' Fallac'+(count===1?'y':'ies')+' Detected</h4></div>';
+          h+='<p class="text-dim mb-5" style="line-height:1.7">'+esc(summary)+'</p>';
+          // Individual fallacies
+          h+='<div style="display:flex;flex-direction:column;gap:0.75rem;margin-bottom:1.5rem">';
+          mappedResults.forEach(r=>{
+            if(r.type==='fairPlay')return;
+            const borderColor=data.severity==='red'?'#e53935':'#facf39';
+            h+='<div class="bg-card-inner rounded-xl p-5" style="border-left:4px solid '+borderColor+'">';
+            h+='<div class="flex items-center gap-2 mb-2 flex-wrap"><span style="font-size:1.4rem">'+r.fallacy.emoji+'</span><span class="text-yellow font-bold text-lg">'+r.fallacy.name+'</span>';
+            if(r.ruling){h+='<span class="text-xs px-2 py-1 rounded-full" style="margin-left:auto;background:#1e293b;color:#9ca3af;border:1px solid #334155">'+esc(r.ruling)+'</span>'}
+            h+='</div>';
+            h+='<p class="text-dim mb-2" style="line-height:1.7">'+esc(r.analysis)+'</p>';
+            if(r.quotedText){h+='<p class="text-dimmer text-sm" style="border-left:2px solid #475569;padding-left:0.75rem;font-style:italic">\u201C'+esc(r.quotedText)+'\u201D</p>'}
+            h+='</div>';
+          });
+          h+='</div>';
+          // Suggest stronger version button
+          h+='<div id="rewrite-section" class="mb-4"><button id="rewrite-btn" onclick="suggestStrongerVersion()" class="text-sm px-5 py-2.5 rounded-lg font-bold" style="background:#1e293b;color:#94a3b8;border:1px solid #334155;cursor:pointer;transition:all 0.2s" onmouseover="this.style.background=\'#334155\';this.style.color=\'#e2e8f0\'" onmouseout="this.style.background=\'#1e293b\';this.style.color=\'#94a3b8\'">\u{1F4A1} Suggest a stronger version of this argument</button><div id="rewrite-result" style="display:none" class="mt-3"></div></div>';
+          // Admin: tweet + export
+          if(tweet&&ADMIN){h+='<div class="bg-card-inner border-mid rounded-xl p-5" style="border-width:1px"><div class="flex items-center gap-2 mb-3"><span>&#120143;</span><strong class="text-dim" style="font-size:0.9rem">Ready-to-post version</strong></div><p class="text-dim text-sm tweet-box bg-card-deep p-4 rounded-lg" style="white-space:pre-wrap">'+esc(tweet)+'</p><button onclick="copyEl(\'at-text\')" class="mt-3 text-sm bg-tag-dim text-dim px-4 py-2 rounded-lg" style="border:none;transition:background 0.2s">Copy to clipboard</button><span id="at-text" style="display:none">'+tweet+'</span></div>'}
+          if(ADMIN){var bsky=generateBsky(input,mappedResults,data.severity);h+='<div class="bg-card-inner border-mid rounded-xl p-5 mt-3" style="border-width:1px"><div class="flex items-center gap-2 mb-3"><span style="font-size:1.1rem">\u{1F98B}</span><strong class="text-dim" style="font-size:0.9rem">Bluesky version</strong><span class="text-dimmer text-xs" style="margin-left:auto">'+bsky.length+'/300</span></div><p class="text-dim text-sm tweet-box bg-card-deep p-4 rounded-lg" style="white-space:pre-wrap">'+esc(bsky)+'</p><button onclick="copyEl(\'at-bsky-text\')" class="mt-3 text-sm bg-tag-dim text-dim px-4 py-2 rounded-lg" style="border:none;transition:background 0.2s">Copy to clipboard</button><span id="at-bsky-text" style="display:none">'+bsky+'</span></div>'}
+          if(ADMIN){h+='<div class="bg-card-inner border-mid rounded-xl p-5 mt-3" style="border-width:1px"><div class="flex items-center gap-2 mb-3"><span style="font-size:1.2rem">&#128190;</span><strong class="text-dim" style="font-size:0.9rem">Post to site</strong></div><p class="text-dimmer text-sm mb-3">Fill in the details below, then post this analysis as a card on the live site.</p><div style="display:grid;grid-template-columns:1fr 1fr;gap:0.5rem;margin-bottom:0.5rem"><input id="export-speaker" class="bg-card-deep text-white border-mid rounded-lg px-3 py-2 text-sm" style="border-width:1px" placeholder="Speaker (e.g. Sen. John Doe (R-TX))"><input id="export-context" class="bg-card-deep text-white border-mid rounded-lg px-3 py-2 text-sm" style="border-width:1px" placeholder="Context (e.g. Senate floor speech, March 2026)"></div><input id="export-topic" class="w-full bg-card-deep text-white border-mid rounded-lg px-3 py-2 text-sm mb-2" style="border-width:1px" placeholder="Topic (e.g. Healthcare, Gun Policy, Climate)"><select id="export-page" class="w-full bg-card-deep text-white border-mid rounded-lg px-3 py-2 text-sm mb-3" style="border-width:1px"><option value="main">Main page</option><option value="potus">POTUS Watch page</option></select><div style="display:flex;gap:0.5rem;flex-wrap:wrap"><button onclick="exportCard()" class="text-sm bg-tag-dim text-dim px-4 py-2 rounded-lg" style="border:none;transition:background 0.2s">Preview JSON</button><button onclick="postCardToSite()" id="post-to-site-btn" class="text-sm bg-yellow-btn text-gray-900 font-bold px-4 py-2 rounded-lg" style="border:none;transition:background 0.2s">Post to site</button><a href="instagram.html" class="text-sm px-4 py-2 rounded-lg flex items-center gap-1" style="background:#E1306C;color:#fff;font-weight:700;text-decoration:none;transition:opacity 0.2s" onmouseover="this.style.opacity=0.85" onmouseout="this.style.opacity=1">&#128248; IG Generator</a></div><div id="export-status" style="display:none" class="mt-3"></div><div id="export-output" style="display:none" class="mt-3"><pre class="bg-card-deep text-dim text-xs p-4 rounded-lg" style="white-space:pre-wrap;overflow-x:auto;max-height:20rem" id="export-json"></pre><button onclick="copyEl(\'export-json-raw\')" class="mt-2 text-sm bg-tag-dim text-dim px-4 py-2 rounded-lg" style="border:none;transition:background 0.2s">Copy JSON</button><span id="export-json-raw" style="display:none"></span></div></div>'}
+          h+='<p class="text-dimmer text-sm mt-4" style="font-style:italic">Remember: a flawed argument isn\u2019t necessarily a wrong conclusion \u2014 sometimes people stumble into the right answer for the wrong reasons.</p></div>';
+          c.innerHTML=h;
+          window._lastAnalysis={input:input,results:mappedResults,severity:data.severity,tweet:tweet};
+        }
+      }catch(err){
+        // Fallback to local regex analysis if API fails
+        console.warn('API analysis failed, falling back to pattern matching:',err.message);
+        // Show admin the actual error so we can diagnose
+        if(ADMIN){
+          c.innerHTML='<div style="border-top:1px solid #1f2937;padding-top:1.5rem;margin-top:1.5rem" class="text-center py-8"><span style="font-size:3rem;display:block;margin-bottom:0.75rem">\u26A0\uFE0F</span><h4 class="text-red-accent text-xl font-bold mb-2">API Error</h4><p class="text-dim" style="max-width:32rem;margin:0 auto">The AI analysis failed. Falling back to pattern matching.</p><p class="text-dimmer text-sm mt-3" style="font-family:monospace;background:#0f172a;padding:0.75rem;border-radius:0.5rem">'+esc(err.message)+'</p></div>';
+          btn.disabled=false;btn.textContent='\u{1F3AC} Review the Play';
+          return;
+        }
+        const results=analyzeText(input);
+        if(!results.length){
+          c.innerHTML='<div style="border-top:1px solid #1f2937;padding-top:1.5rem;margin-top:1.5rem" class="text-center py-8"><span style="font-size:3rem;display:block;margin-bottom:0.75rem">\u2705</span><h4 class="text-green-accent text-xl font-bold mb-2">Fair Play!</h4><p class="text-dim" style="max-width:28rem;margin:0 auto">No obvious logical fallacies detected in a quick scan. Either this is a clean argument, or it\u2019s sneakier than our pattern-matching. Try again later for a deeper AI-powered review.</p></div>';
+        }else{
+          let h='<div style="border-top:1px solid #1f2937;padding-top:1.5rem;margin-top:1.5rem"><p class="text-dimmer text-sm mb-3" style="font-style:italic">Running on pattern-matching while the AI takes a breather. Results may be less nuanced.</p><div class="flex items-center gap-2 mb-4"><span style="font-size:1.4rem">\u{1F6A9}</span><h4 class="text-red-accent text-xl font-bold">'+results.length+' Possible Fallac'+(results.length===1?'y':'ies')+' Detected</h4></div><div style="display:flex;flex-direction:column;gap:0.75rem">';
+          results.forEach(r=>{h+='<div class="bg-card-inner rounded-xl p-5" style="border-left:4px solid #facf39"><div class="flex items-center gap-2 mb-2"><span style="font-size:1.4rem">'+r.fallacy.emoji+'</span><span class="text-yellow font-bold text-lg">'+r.fallacy.name+'</span></div><p class="text-dim">'+r.fallacy.description+'</p></div>'});
+          h+='</div></div>';c.innerHTML=h;
+        }
+        window._lastAnalysis={input:input,results:results,severity:results.length>=3?'red':results.length>=1?'yellow':'green',tweet:''};
+      }
+      btn.disabled=false;btn.textContent='\u{1F3AC} Review the Play';
+    }
+
+    function clearAnalysis(){document.getElementById('analyzer-input').value='';document.getElementById('analyzer-results').innerHTML=''}
+
+    async function suggestStrongerVersion(){
+      const a=window._lastAnalysis;if(!a||!a.input)return;
+      const btn=document.getElementById('rewrite-btn');
+      const result=document.getElementById('rewrite-result');
+      btn.disabled=true;btn.textContent='\u231B Rethinking the argument...';
+      result.style.display='block';
+      result.innerHTML='<p class="text-dim text-sm">Crafting a logically sound version...</p>';
+      try{
+        const fallacyList=a.results.filter(r=>r.type!=='fairPlay').map(r=>r.fallacy.name+': '+r.analysis).join('\n');
+        const resp=await fetch('/api/rewrite-argument',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text:a.input,fallacies:fallacyList,severity:a.severity,admin:!!ADMIN})});
+        const data=await resp.json();
+        if(!resp.ok)throw new Error(data.error||'Rewrite failed');
+        let h='<div class="bg-card-inner rounded-xl p-5" style="border-left:4px solid #3b82f6">';
+        h+='<div class="flex items-center gap-2 mb-3"><span style="font-size:1.3rem">\u{1F4A1}</span><strong class="text-blue-400 text-lg">Stronger Version</strong></div>';
+        h+='<p class="text-dim" style="line-height:1.8">'+esc(data.rewrite)+'</p>';
+        if(data.explanation){h+='<p class="text-dimmer text-sm mt-3" style="line-height:1.6;font-style:italic">'+esc(data.explanation)+'</p>'}
+        h+='</div>';
+        result.innerHTML=h;
+        btn.style.display='none';
+      }catch(err){
+        result.innerHTML='<p class="text-red-accent text-sm">\u274C '+esc(err.message)+'</p>';
+        btn.disabled=false;btn.textContent='\u{1F4A1} Suggest a stronger version of this argument';
+      }
+    }
+    function buildCard(){const a=window._lastAnalysis;if(!a)return null;const speaker=document.getElementById('export-speaker').value||'Unknown Speaker';const context=document.getElementById('export-context').value||'Unknown context';const topic=document.getElementById('export-topic').value||'General';const page=(document.getElementById('export-page')||{}).value||'main';const sev=a.results.length>=3?'red':a.results.length>=1?'yellow':'green';const fallacies=a.results.map(r=>({type:r.key,ruling:sev==='red'?'PROFESSIONAL FOUL':sev==='yellow'?'OFFSIDE':'FAIR PLAY',analysis:r.fallacy.description+(r.matchedText?' Triggered by: "'+r.matchedText+'"':'')}));return{topics:topic.split(',').map(t=>t.trim()),quote:a.input,speaker:speaker,context:context,fallacies:fallacies.length?fallacies:[{type:'fairPlay',ruling:'FAIR PLAY',analysis:'No logical fallacies detected. The reasoning structure is sound.'}],severity:sev,tweetVersion:a.tweet||'',page:page}}
+    function exportCard(){const card=buildCard();if(!card)return;const json=JSON.stringify(card,null,2);document.getElementById('export-json').textContent=json;document.getElementById('export-json-raw').textContent=json;document.getElementById('export-output').style.display='block'}
+    async function postCardToSite(){const card=buildCard();if(!card)return;const btn=document.getElementById('post-to-site-btn');const status=document.getElementById('export-status');btn.disabled=true;btn.textContent='Posting...';status.style.display='block';status.innerHTML='<p class="text-dim text-sm">Sending to API...</p>';try{const adminToken=sessionStorage.getItem('ff_token')||new URLSearchParams(window.location.search).get('admin')||'';const resp=await fetch('/api/save-analysis',{method:'POST',headers:{'Content-Type':'application/json','X-Admin-Token':adminToken},body:JSON.stringify(card)});const data=await resp.json();if(resp.ok&&data.success){status.innerHTML='<p class="text-green-accent text-sm font-bold">\u2705 Posted! Card #'+data.id+' is now live on the '+(card.page==='potus'?'POTUS Watch':'main')+' page. ('+data.total+' total cards)</p>';const posted=Object.assign({id:data.id},card);delete posted.page;posted.tweetVersion=buildTweet(posted,'https://fallacyflag.com/#analysis-');FEATURED_ANALYSES.unshift(posted);buildTopicFilters();renderAnalyses()}else{status.innerHTML='<p class="text-red-accent text-sm">\u274C Error: '+(data.error||'Unknown error')+'</p>'}}catch(e){status.innerHTML='<p class="text-red-accent text-sm">\u274C Network error: '+e.message+'</p>'}btn.disabled=false;btn.textContent='Post to site'}
+    document.addEventListener('DOMContentLoaded',function(){document.getElementById('analyzer-input').addEventListener('keydown',function(e){if(e.key==='Enter'&&(e.metaKey||e.ctrlKey))runAnalysis()})});
+
+    // ── FALLACY OF THE WEEK ──
+    function buildFOTW(){
+      const visible=FEATURED_ANALYSES.filter(a=>!HIDE_IDS.includes(a.id));
+      if(!visible.length)return;
+      // Pick: most recent red card, or failing that, most recent yellow with 2+ fallacies, or first card
+      let pick=visible.find(a=>a.severity==='red');
+      if(!pick)pick=visible.find(a=>a.severity==='yellow'&&a.fallacies.length>=2);
+      if(!pick)pick=visible[0];
+      const c=document.getElementById('fotw-container');
+      const isFP=pick.severity==='green';
+      const borderColor=isFP?'#16a34a':pick.severity==='red'?'#e53935':'#facf39';
+      let fallacyHTML='';
+      pick.fallacies.forEach(function(f){
+        const ft=_nft(f.type);
+        const emoji=ft==='fairPlay'?'\u2705':(FALLACIES[ft]?FALLACIES[ft].emoji:'\u26A0\uFE0F');
+        const name=ft==='fairPlay'?'Sound Reasoning':(FALLACIES[ft]?FALLACIES[ft].name:ft);
+        const nameColor=ft==='fairPlay'?'color:#4ade80':'color:#facf39';
+        fallacyHTML+='<div class="bg-card-inner rounded-lg p-4 finding-border-'+pick.severity+'" style="margin-bottom:0.5rem"><div class="flex items-center gap-2 mb-2 flex-wrap"><span style="font-size:1.2rem">'+emoji+'</span><span style="font-weight:700;'+nameColor+'">'+name+'</span><span class="bg-tag-dim text-dim text-xs px-2 py-1 rounded-full" style="margin-left:auto">'+mapRuling(f)+'</span></div><p class="text-dim text-sm" style="line-height:1.7">'+f.analysis+'</p></div>';
+      });
+      let badge=pick.severity==='green'?'<span class="badge-green">\u26BD FAIR PLAY</span>':pick.severity==='red'?'<span class="badge-red">\u{1F7E5} RED CARD</span>':'<span class="badge-yellow">\u{1F7E8} YELLOW CARD</span>';
+      let topicTags='';
+      if(pick.topics)pick.topics.forEach(function(t){topicTags+='<span class="topic-tag">'+t+'</span> '});
+      c.innerHTML='<div class="fotw-card" style="border-color:'+borderColor+'"><div class="fotw-ribbon">\u{1F3C6} Fallacy of the Week</div><div style="margin-bottom:1rem;display:flex;align-items:center;gap:0.75rem;flex-wrap:wrap">'+badge+(topicTags?'<div style="display:flex;gap:0.3rem;flex-wrap:wrap">'+topicTags+'</div>':'')+'</div><p class="text-dim text-sm mb-1" style="font-style:italic">'+esc(pick.context)+'</p><p class="text-dimmer text-sm mb-3">'+esc(pick.speaker)+'</p><blockquote class="text-white text-lg mb-4 pl-4" style="border-left:4px solid '+borderColor+';line-height:1.7">\u201C'+pick.quote+'\u201D</blockquote><div>'+fallacyHTML+'</div><div class="mt-3" style="display:flex;gap:1rem;align-items:center"><a href="#analysis-'+pick.id+'" class="text-dim text-sm" style="text-decoration:none;transition:color 0.2s" onmouseover="this.style.color=\'#facf39\'" onmouseout="this.style.color=\'#9ca3af\'">View full card \u2192</a></div></div>';
+    }
+
+    // ── SEASON STANDINGS / LEADERBOARD ──
+    let _lbMode='main';
+    let _potusCards=[];
+    const POTUS_HIDE_LB=[1001,1002,1003,1004,1005];
+    function setLBMode(mode){
+      _lbMode=mode;
+      document.getElementById('lb-main-btn').classList.toggle('active',mode==='main');
+      document.getElementById('lb-all-btn').classList.toggle('active',mode==='all');
+      buildLeaderboard();
+    }
+    function buildLeaderboard(){
+      var mainVisible=FEATURED_ANALYSES.filter(a=>!HIDE_IDS.includes(a.id));
+      var potusVisible=_potusCards.filter(a=>!POTUS_HIDE_LB.includes(a.id));
+      const visible=_lbMode==='all'?mainVisible.concat(potusVisible):mainVisible;
+      if(!visible.length)return;
+      // Speaker stats
+      const sp={};
+      visible.forEach(function(a){
+        const n=a.speaker;
+        if(!sp[n])sp[n]={red:0,yellow:0,green:0,total:0};
+        sp[n][a.severity]++;sp[n].total++;
+      });
+      // Fallacy type counts
+      const fc={};
+      visible.forEach(function(a){a.fallacies.forEach(function(f){
+        const ft=_nft(f.type);
+        if(ft&&ft!=='fairPlay'){fc[ft]=(fc[ft]||0)+1}
+      })});
+      // Sort speakers by most cards (red weighted higher)
+      const ranked=Object.entries(sp).sort(function(a,b){return(b[1].red*3+b[1].yellow*1)-(a[1].red*3+a[1].yellow*1)}).slice(0,8);
+      // Top fair players
+      const fairPlayers=Object.entries(sp).filter(function(e){return e[1].green>0}).sort(function(a,b){return(b[1].green/b[1].total)-(a[1].green/a[1].total)}).slice(0,5);
+      // Top fallacies
+      const topF=Object.entries(fc).sort(function(a,b){return b[1]-a[1]}).slice(0,6);
+      // Season totals
+      const totG=visible.filter(function(a){return a.severity==='green'}).length;
+      const totY=visible.filter(function(a){return a.severity==='yellow'}).length;
+      const totR=visible.filter(function(a){return a.severity==='red'}).length;
+      const totAll=totG+totY+totR;
+
+      // Build HTML
+      var h='';
+      // Season summary bar
+      h+='<div class="bg-card rounded-xl p-5 border-dim mb-6" style="border-width:1px"><div class="flex items-center justify-between flex-wrap gap-3 mb-3"><span class="text-white font-bold">Season Totals</span><span class="text-dimmer text-sm">'+totAll+' arguments reviewed</span></div>';
+      h+='<div class="lb-bar-track" style="height:10px;border-radius:5px">';
+      if(totAll>0){
+        h+='<div class="lb-bar-seg" style="width:'+(totG/totAll*100)+'%;background:#16a34a"></div>';
+        h+='<div class="lb-bar-seg" style="width:'+(totY/totAll*100)+'%;background:#facf39"></div>';
+        h+='<div class="lb-bar-seg" style="width:'+(totR/totAll*100)+'%;background:#e53935"></div>';
+      }
+      h+='</div><div class="flex justify-between mt-2" style="font-size:0.8rem"><span style="color:#4ade80">\u26BD '+totG+' Fair Plays</span><span style="color:#facf39">\u{1F7E8} '+totY+' Yellow</span><span style="color:#f87171">\u{1F7E5} '+totR+' Red</span></div></div>';
+
+      h+='<div class="lb-section">';
+
+      // Most Carded speakers
+      h+='<div class="bg-card rounded-xl p-5 border-dim" style="border-width:1px"><h3 class="text-white font-bold mb-3" style="font-size:0.95rem">\u{1F3C6} Most Carded</h3>';
+      h+='<table class="lb-table"><thead><tr><th></th><th>Speaker</th><th style="text-align:center">\u{1F7E5}</th><th style="text-align:center">\u{1F7E8}</th><th style="text-align:center">\u26BD</th></tr></thead><tbody>';
+      ranked.forEach(function(e,i){
+        var raw=e[0];
+        // Extract party/affiliation tag like (D-Ohio), (R-TX), (Independent)
+        var tagMatch=raw.match(/\(([^)]+)\)\s*$/);
+        var tag=tagMatch?tagMatch[1]:'';
+        var withoutTag=tagMatch?raw.replace(tagMatch[0],'').trim():raw;
+        // Strip common title prefixes
+        var name=withoutTag.replace(/^(Sen\.|Senator|Rep\.|Representative|President|Governor|Gov\.) /,'');
+        // For long descriptive names like "Union leader and labor advocate Paul Kraft",
+        // try to extract the actual person name (last 2-3 capitalized words before the tag)
+        var nameWords=name.split(' ');
+        if(nameWords.length>3){
+          var personWords=[];
+          for(var wi=nameWords.length-1;wi>=0;wi--){
+            if(/^[A-Z]/.test(nameWords[wi])){personWords.unshift(nameWords[wi])}
+            else break;
+          }
+          if(personWords.length>=2)name=personWords.join(' ');
+        }
+        if(name.length>24)name=name.substring(0,22)+'\u2026';
+        h+='<tr><td class="lb-rank">'+(i+1)+'</td><td>'+esc(name)+'<br><span class="lb-sub">'+esc(tag)+'</span></td><td style="text-align:center"><span class="lb-pill" style="background:rgba(229,57,53,0.2);color:#f87171">'+e[1].red+'</span></td><td style="text-align:center"><span class="lb-pill" style="background:rgba(250,207,57,0.2);color:#facf39">'+e[1].yellow+'</span></td><td style="text-align:center"><span class="lb-pill" style="background:rgba(22,163,74,0.2);color:#4ade80">'+e[1].green+'</span></td></tr>';
+      });
+      h+='</tbody></table></div>';
+
+      // Top fallacy types
+      h+='<div class="bg-card rounded-xl p-5 border-dim" style="border-width:1px"><h3 class="text-white font-bold mb-3" style="font-size:0.95rem">\u{1F6A9} Most Common Fouls</h3>';
+      var maxFC=topF.length?topF[0][1]:1;
+      topF.forEach(function(e){
+        var info=FALLACIES[e[0]];
+        var emoji=info?info.emoji:'\u26A0\uFE0F';
+        var name=info?info.name:e[0];
+        h+='<div style="display:flex;align-items:center;gap:0.6rem;margin-bottom:0.7rem"><span style="font-size:1.1rem;width:1.5rem;text-align:center">'+emoji+'</span><div style="flex:1"><div style="display:flex;justify-content:space-between;margin-bottom:0.2rem"><span class="text-dim" style="font-size:0.82rem">'+name+'</span><span class="text-dimmer" style="font-size:0.75rem">'+e[1]+'</span></div><div class="lb-bar-track"><div class="lb-bar-seg" style="width:'+(e[1]/maxFC*100)+'%;background:#facf39;border-radius:3px"></div></div></div></div>';
+      });
+      // Fair play honorees
+      if(fairPlayers.length){
+        h+='<div style="margin-top:1.25rem;padding-top:1rem;border-top:1px solid #334155"><h4 class="text-green-accent font-bold mb-2" style="font-size:0.85rem">\u26BD Fair Play Leaders</h4>';
+        fairPlayers.forEach(function(e){
+          var fpRaw=e[0];var fpTagM=fpRaw.match(/\(([^)]+)\)\s*$/);var fpWithout=fpTagM?fpRaw.replace(fpTagM[0],'').trim():fpRaw;
+          var name=fpWithout.replace(/^(Sen\.|Senator|Rep\.|Representative|President|Governor|Gov\.) /,'');
+          var nw=name.split(' ');if(nw.length>3){var pw=[];for(var wi=nw.length-1;wi>=0;wi--){if(/^[A-Z]/.test(nw[wi]))pw.unshift(nw[wi]);else break}if(pw.length>=2)name=pw.join(' ')}
+          var pct=Math.round(e[1].green/e[1].total*100);
+          h+='<div style="display:flex;align-items:center;gap:0.5rem;margin-bottom:0.35rem"><span style="color:#4ade80;font-size:0.82rem">'+esc(name)+'</span><span class="text-dimmer" style="font-size:0.7rem">'+e[1].green+'/'+e[1].total+' ('+pct+'%)</span></div>';
+        });
+        h+='</div>';
+      }
+      h+='</div>';
+
+      h+='</div>';
+      document.getElementById('leaderboard-content').innerHTML=h;
+    }
+
+    buildTopicFilters();renderAnalyses();renderFallacyGrid();buildFOTW();buildLeaderboard();
+    // Load dynamic analyses from API
+    function normalizeFallacies(arr){arr.forEach(function(a){if(!a.fallacies||!a.fallacies.length){if(a.analysis&&a.ruling){var t=a.fallacyType||a.type||'fairPlay';if(a.severity==='green')t='fairPlay';a.fallacies=[{type:t,ruling:a.ruling,analysis:a.analysis}]}else{a.fallacies=[{type:'fairPlay',ruling:'FAIR PLAY',analysis:a.analysis||'No analysis available.'}]}}a.fallacies.forEach(function(f){if(!f.analysis)f.analysis=a.analysis||'No detailed analysis available for this fallacy.';if(!f.type)f.type='fairPlay';if(!f.ruling)f.ruling=a.ruling||'FOUL'})})}
+    function addTweetHeaders(arr,base){arr.forEach(function(a){a.tweetVersion=buildTweet(a,base);a.bskyVersion=buildBsky(a,base)})}
+    function scrollToHash(){if(window.location.hash){const el=document.querySelector(window.location.hash);if(el){setTimeout(()=>{el.scrollIntoView({behavior:'smooth',block:'center'});el.style.boxShadow='0 0 0 3px #facf39';setTimeout(()=>{el.style.boxShadow=''},3000)},300)}}}
+    scrollToHash();
+    fetch('/api/get-analyses?type=main').then(r=>r.json()).then(data=>{if(data&&data.length){const existingIds=new Set(FEATURED_ANALYSES.map(a=>a.id));const newOnes=data.filter(a=>!existingIds.has(a.id));if(newOnes.length){normalizeFallacies(newOnes);addTweetHeaders(newOnes,'https://fallacyflag.com/#analysis-');FEATURED_ANALYSES.unshift(...newOnes);buildTopicFilters();renderAnalyses();buildFOTW();buildLeaderboard();scrollToHash()}}}).catch(()=>{});
+    // Load POTUS cards for leaderboard toggle
+    fetch('/api/get-analyses?type=potus').then(r=>r.json()).then(data=>{if(data&&data.length){normalizeFallacies(data);_potusCards=data.filter(a=>!POTUS_HIDE_LB.includes(a.id));if(_lbMode==='all')buildLeaderboard()}}).catch(()=>{});
+  </script>
+  <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}</script>
+</body>
+</html>

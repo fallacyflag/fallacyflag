@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quote Submitted — FallacyFlag</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#111118" />
+  <link rel="apple-touch-icon" href="/icon-192x192.png" />
+  <style>
+    body { background: #111118; background-image: repeating-linear-gradient(to bottom, rgba(229,57,53,0.28) 0px, rgba(229,57,53,0.10) 200px, rgba(200,200,215,0.10) 500px, rgba(200,200,215,0.04) 650px, rgba(15,15,25,0.95) 800px, rgba(229,57,53,0.28) 1100px); color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; }
+    *, *::before, *::after { box-sizing: border-box; }
+    .bg-card { background: #1e293b; }
+    .border-dim { border-color: #334155; }
+    .text-yellow { color: #facf39; }
+    .text-dim { color: #9ca3af; }
+    .text-dimmer { color: #6b7280; }
+    .text-dimmest { color: #4b5563; }
+    .text-green-accent { color: #4ade80; }
+    .bg-yellow-btn { background: #facf39; }
+    .bg-yellow-btn:hover { background: #ffe066; }
+    .nav-bar { position: sticky; top: 0; z-index: 50; background: rgba(17,17,24,0.97); backdrop-filter: blur(12px); border-bottom: 1px solid #ffffff; }
+    .hamburger { display: none; background: none; border: none; cursor: pointer; padding: 0.5rem; }
+    .hamburger span { display: block; width: 22px; height: 2px; background: #9ca3af; margin: 5px 0; border-radius: 2px; transition: all 0.3s; }
+    .mobile-menu { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(17,17,24,0.98); z-index: 100; padding: 5rem 2rem 2rem; overflow-y: auto; }
+    .mobile-menu.open { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; }
+    .mobile-menu a { display: block; color: #d1d5db; font-size: 1.1rem; font-weight: 500; padding: 0.75rem 1.5rem; text-decoration: none; text-align: center; border-radius: 0.5rem; transition: all 0.2s; width: 100%; max-width: 20rem; }
+    .mobile-menu a:hover { background: rgba(250,207,57,0.1); color: #facf39; }
+    .mobile-menu .mobile-divider { height: 1px; background: #334155; margin: 0.5rem auto; width: 100%; max-width: 16rem; }
+    .mobile-close { position: absolute; top: 1rem; right: 1.5rem; background: none; border: none; color: #9ca3af; font-size: 1.75rem; cursor: pointer; padding: 0.5rem; z-index: 101; }
+    @media (max-width: 768px) { .nav-links { display: none !important; } .hamburger { display: block; } }
+    @media (min-width: 769px) { .mobile-menu { display: none !important; } }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav-bar">
+    <div style="max-width:72rem" class="mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="index.html" class="flex items-center" style="text-decoration:none">
+        <img src="logo-nav.png" alt="FallacyFlag" style="height:28px; width:auto" />
+      </a>
+      <div class="nav-links flex items-center gap-3" style="font-size:0.85rem">
+        <a href="index.html" class="text-dim hover:text-white" style="text-decoration:none; transition:color 0.2s">Home</a>
+        <a href="index.html#reference" class="text-dim hover:text-white" style="text-decoration:none; transition:color 0.2s">Fallacy Guide</a>
+        <a href="index.html#latest" class="text-dim hover:text-white" style="text-decoration:none; transition:color 0.2s">Latest Calls</a>
+        <a href="potus.html" class="text-dim hover:text-white" style="text-decoration:none; transition:color 0.2s">&#127482;&#127480; POTUS Watch</a>
+        <a href="index.html#analyzer" class="text-dim hover:text-white" style="text-decoration:none; transition:color 0.2s">Analyzer</a>
+        <a href="index.html#leaderboard" class="text-dim hover:text-white" style="text-decoration:none; transition:color 0.2s">Standings</a>
+        <a href="archive.html" class="text-dim hover:text-white" style="text-decoration:none; transition:color 0.2s">Archive</a>
+        <a href="submit.html" class="text-dim hover:text-white" style="text-decoration:none; transition:color 0.2s">Submit a Quote</a>
+        <a href="weekly.html" class="text-dim hover:text-white" style="text-decoration:none; transition:color 0.2s">Weekly Digest</a>
+        <a href="https://x.com/FallacyFlagHQ" target="_blank" rel="noopener noreferrer" class="text-dim hover:text-blue-400" style="text-decoration:none; transition:color 0.2s">&#120143;</a>
+        <a href="https://bsky.app/profile/fallacyflaghq.bsky.social" target="_blank" rel="noopener noreferrer" class="text-dim hover:text-blue-400" style="text-decoration:none; transition:color 0.2s">&#129419;</a>
+
+      </div>
+      <button class="hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+  <div class="mobile-menu" id="mobile-menu">
+    <button class="mobile-close" onclick="toggleMobileMenu()">&times;</button>
+    <a href="index.html">Home</a>
+    <a href="index.html#reference">Fallacy Guide</a>
+    <a href="index.html#latest">Latest Calls</a>
+    <a href="potus.html">&#127482;&#127480; POTUS Watch</a>
+    <a href="index.html#analyzer">Analyzer</a>
+    <a href="index.html#leaderboard">Standings</a>
+    <a href="archive.html">Archive</a>
+    <div class="mobile-divider"></div>
+    <a href="submit.html">Submit a Quote</a>
+    <a href="weekly.html">Weekly Digest</a>
+    <div class="mobile-divider"></div>
+    <a href="https://x.com/FallacyFlagHQ" target="_blank" rel="noopener noreferrer">&#120143; @FallacyFlagHQ</a>
+    <a href="https://bsky.app/profile/fallacyflaghq.bsky.social" target="_blank" rel="noopener noreferrer">&#129419; Bluesky</a>
+
+  </div>
+
+  <!-- SUCCESS MESSAGE -->
+  <div style="max-width:40rem" class="mx-auto px-4 py-32 text-center">
+    <div style="font-size:4rem; margin-bottom:1.5rem">&#9989;</div>
+    <h1 class="text-green-accent text-3xl font-bold mb-4">Quote Submitted!</h1>
+    <p class="text-dim mb-6" style="line-height:1.7; max-width:28rem; margin:0 auto">
+      Your quote is in the review queue. If it makes the cut, it'll appear on the site with full analysis. Thanks for helping raise the flag on faulty reasoning.
+    </p>
+    <div class="flex flex-wrap justify-center gap-4">
+      <a href="submit.html" class="bg-yellow-btn text-gray-900 font-bold px-6 py-3 rounded-xl" style="text-decoration:none; transition:background 0.2s">Submit Another</a>
+      <a href="index.html" class="bg-card text-white font-bold px-6 py-3 rounded-xl border-dim" style="border-width:1px; text-decoration:none; transition:background 0.2s">Back to Home</a>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <footer class="border-dim py-10 mt-10" style="border-top-width:1px">
+    <div style="max-width:72rem" class="mx-auto px-4">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <img src="logo-color.png" alt="FallacyFlag" style="height:26px; width:auto" />
+          <span class="text-dimmer text-sm">Raising the flag on faulty reasoning.</span>
+        </div>
+        <div class="text-center md:text-right">
+          <p class="text-dimmer text-sm">Calling fouls and fair plays, not political sides. &copy; 2026 FallacyFlag. All rights reserved.</p>
+          <p class="text-dimmest text-xs mt-1">Identifying a fallacy &ne; saying the conclusion is wrong. Awarding Fair Play &ne; endorsing the conclusion.</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    function toggleMobileMenu(){var m=document.getElementById('mobile-menu');var b=document.querySelector('.hamburger');m.classList.toggle('open');b.classList.toggle('open');document.body.style.overflow=m.classList.contains('open')?'hidden':''}
+  </script>
+  <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}</script>
+</body>
+</html>

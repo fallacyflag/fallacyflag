@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FallacyFlag — Instagram Card Generator</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: #0f0f17; color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+
+    /* Layout */
+    .app { display: flex; min-height: 100vh; }
+    .sidebar { width: 380px; background: #1a1a2e; border-right: 1px solid #2a2a40; padding: 1.5rem; overflow-y: auto; flex-shrink: 0; }
+    .preview-area { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 2rem; gap: 1.5rem; overflow-y: auto; }
+
+    /* Sidebar controls */
+    .sb-title { color: #facf39; font-size: 1.1rem; font-weight: 700; margin-bottom: 1.25rem; display: flex; align-items: center; gap: 0.5rem; }
+    .sb-section { margin-bottom: 1.25rem; }
+    .sb-label { color: #9ca3af; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.35rem; display: block; }
+    .sb-input { width: 100%; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 0.5rem; padding: 0.6rem 0.75rem; font-size: 0.85rem; font-family: inherit; }
+    .sb-input:focus { outline: none; border-color: #facf39; }
+    .sb-textarea { height: 5rem; resize: vertical; }
+    .sb-select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%239ca3af' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 0.75rem center; padding-right: 2rem; }
+    .sb-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem; }
+    .sb-btn { padding: 0.6rem 1rem; border-radius: 0.5rem; font-weight: 700; font-size: 0.85rem; border: none; cursor: pointer; transition: all 0.2s; width: 100%; }
+    .sb-btn-primary { background: #facf39; color: #111; }
+    .sb-btn-primary:hover { background: #ffe066; }
+    .sb-btn-secondary { background: #334155; color: #d1d5db; }
+    .sb-btn-secondary:hover { background: #475569; }
+    .sb-divider { height: 1px; background: #2a2a40; margin: 1.25rem 0; }
+    .mode-toggle { display: flex; border-radius: 0.5rem; overflow: hidden; border: 1px solid #334155; margin-bottom: 1rem; }
+    .mode-btn { flex: 1; padding: 0.5rem; font-size: 0.8rem; font-weight: 600; background: transparent; color: #6b7280; border: none; cursor: pointer; transition: all 0.2s; }
+    .mode-btn.active { background: #facf39; color: #111; }
+    .card-picker { max-height: 12rem; overflow-y: auto; border: 1px solid #334155; border-radius: 0.5rem; }
+    .card-pick-item { padding: 0.5rem 0.75rem; font-size: 0.78rem; color: #d1d5db; cursor: pointer; border-bottom: 1px solid #1e293b; transition: background 0.15s; display: flex; align-items: center; gap: 0.5rem; }
+    .card-pick-item:hover { background: rgba(250,207,57,0.08); }
+    .card-pick-item:last-child { border-bottom: none; }
+    .card-pick-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ════════════════════════════════════════════
+       INSTAGRAM CARD STYLES (1080×1080)
+       These render inside the canvas divs
+       ════════════════════════════════════════════ */
+    .ig-card {
+      width: 1080px; height: 1080px;
+      position: relative; overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    /* Severity-based backgrounds */
+    .ig-card.sev-red { background: linear-gradient(160deg, #1a0a0a 0%, #2d0f0f 40%, #1a1225 100%); }
+    .ig-card.sev-yellow { background: linear-gradient(160deg, #1a1505 0%, #2d2510 40%, #1a1225 100%); }
+    .ig-card.sev-green { background: linear-gradient(160deg, #0a1a0f 0%, #0f2d18 40%, #121a25 100%); }
+
+    /* Accent stripe */
+    .ig-stripe { position: absolute; left: 0; top: 0; bottom: 0; width: 6px; }
+    .ig-stripe.str-red { background: linear-gradient(to bottom, #e53935, #c62828); }
+    .ig-stripe.str-yellow { background: linear-gradient(to bottom, #facf39, #d4a800); }
+    .ig-stripe.str-green { background: linear-gradient(to bottom, #16a34a, #0d7a35); }
+
+    /* Content wrapper */
+    .ig-inner { position: absolute; top: 0; left: 0; right: 0; bottom: 0; padding: 72px 72px 72px 78px; display: flex; flex-direction: column; }
+
+    /* Header: logo + badge */
+    .ig-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 48px; }
+    .ig-logo { font-size: 28px; font-weight: 800; color: #facf39; letter-spacing: -0.02em; }
+    .ig-logo-sub { font-size: 15px; color: #6b7280; font-weight: 400; margin-left: 8px; }
+    .ig-badge { font-size: 20px; font-weight: 800; padding: 10px 24px; border-radius: 8px; text-transform: uppercase; letter-spacing: 0.06em; }
+    .ig-badge.b-red { background: #e53935; color: #fff; }
+    .ig-badge.b-yellow { background: #facf39; color: #111; }
+    .ig-badge.b-green { background: #16a34a; color: #fff; }
+
+    /* Speaker + context */
+    .ig-speaker { font-size: 22px; color: #9ca3af; margin-bottom: 6px; }
+    .ig-context { font-size: 18px; color: #4b5563; font-style: italic; margin-bottom: 36px; }
+
+    /* Quote */
+    .ig-quote { flex: 1; display: flex; align-items: center; }
+    .ig-quote-text { font-size: 38px; font-weight: 600; color: #f1f5f9; line-height: 1.45; position: relative; padding-left: 32px; }
+    .ig-quote-mark { position: absolute; left: -8px; top: -16px; font-size: 80px; color: rgba(250,207,57,0.25); font-family: Georgia, serif; line-height: 1; }
+
+    /* Fallacy tags */
+    .ig-fallacies { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 40px; }
+    .ig-fallacy-tag { font-size: 20px; font-weight: 700; padding: 10px 20px; border-radius: 40px; display: flex; align-items: center; gap: 8px; }
+    .ig-fallacy-tag.ft-red { background: rgba(229,57,53,0.15); color: #f87171; border: 1px solid rgba(229,57,53,0.3); }
+    .ig-fallacy-tag.ft-yellow { background: rgba(250,207,57,0.12); color: #facf39; border: 1px solid rgba(250,207,57,0.25); }
+    .ig-fallacy-tag.ft-green { background: rgba(22,163,74,0.15); color: #4ade80; border: 1px solid rgba(22,163,74,0.3); }
+
+    /* Footer */
+    .ig-footer { display: flex; align-items: center; justify-content: space-between; margin-top: 40px; }
+    .ig-url { font-size: 18px; color: #4b5563; font-weight: 500; }
+    .ig-handle { font-size: 18px; color: #facf39; font-weight: 600; }
+
+    /* ── CAROUSEL SLIDE STYLES ── */
+    .ig-card.slide-quote .ig-quote-text { font-size: 44px; }
+    .ig-card.slide-breakdown { padding: 0; }
+    .ig-breakdown-inner { position: absolute; top: 0; left: 0; right: 0; bottom: 0; padding: 72px 72px 72px 78px; display: flex; flex-direction: column; }
+    .ig-breakdown-title { font-size: 26px; font-weight: 800; color: #facf39; margin-bottom: 36px; text-transform: uppercase; letter-spacing: 0.05em; }
+    .ig-breakdown-item { margin-bottom: 28px; }
+    .ig-breakdown-name { font-size: 28px; font-weight: 700; margin-bottom: 8px; display: flex; align-items: center; gap: 10px; }
+    .ig-breakdown-name.bn-red { color: #f87171; }
+    .ig-breakdown-name.bn-yellow { color: #facf39; }
+    .ig-breakdown-name.bn-green { color: #4ade80; }
+    .ig-breakdown-analysis { font-size: 22px; color: #9ca3af; line-height: 1.55; }
+    .ig-ruling-label { font-size: 16px; color: #6b7280; background: rgba(255,255,255,0.05); padding: 6px 14px; border-radius: 20px; margin-left: auto; }
+
+    /* Slide 3: ruling */
+    .ig-ruling-center { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+    .ig-ruling-emoji { font-size: 120px; margin-bottom: 32px; }
+    .ig-ruling-text { font-size: 48px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 16px; }
+    .ig-ruling-text.rt-red { color: #e53935; }
+    .ig-ruling-text.rt-yellow { color: #facf39; }
+    .ig-ruling-text.rt-green { color: #4ade80; }
+    .ig-ruling-witty { font-size: 24px; color: #9ca3af; max-width: 700px; line-height: 1.5; }
+
+    /* Preview scaling */
+    .preview-frame { transform-origin: top left; border-radius: 8px; overflow: hidden; box-shadow: 0 8px 32px rgba(0,0,0,0.5); }
+    .preview-label { color: #6b7280; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 0.5rem; }
+    .carousel-row { display: flex; gap: 1.5rem; align-items: flex-start; flex-wrap: wrap; justify-content: center; }
+  </style>
+</head>
+<body>
+<div class="app">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sb-title">&#128248; Instagram Card Generator</div>
+
+    <div class="sb-section">
+      <label class="sb-label">Load from existing card</label>
+      <div class="card-picker" id="card-picker"></div>
+    </div>
+
+    <div class="sb-divider"></div>
+
+    <div class="sb-section">
+      <label class="sb-label">Quote</label>
+      <textarea id="f-quote" class="sb-input sb-textarea" placeholder="Paste the quote here..."></textarea>
+    </div>
+    <div class="sb-section sb-row">
+      <div><label class="sb-label">Speaker</label><input id="f-speaker" class="sb-input" placeholder="Sen. John Doe (R-TX)" /></div>
+      <div><label class="sb-label">Severity</label><select id="f-severity" class="sb-input sb-select"><option value="red">Red Card</option><option value="yellow" selected>Yellow Card</option><option value="green">Fair Play</option></select></div>
+    </div>
+    <div class="sb-section">
+      <label class="sb-label">Context</label>
+      <input id="f-context" class="sb-input" placeholder="Senate floor speech, March 2026" />
+    </div>
+    <div class="sb-section">
+      <label class="sb-label">Fallacies (one per line: emoji Name)</label>
+      <textarea id="f-fallacies" class="sb-input sb-textarea" placeholder="&#x1F33E; Straw Man&#10;&#x1F622; Appeal to Emotion" style="height:4rem"></textarea>
+    </div>
+    <div class="sb-section">
+      <label class="sb-label">Analysis (for carousel slide 2)</label>
+      <textarea id="f-analysis" class="sb-input sb-textarea" placeholder="The argument misrepresents the opposing position..." style="height:4rem"></textarea>
+    </div>
+    <div class="sb-section">
+      <label class="sb-label">Witty line (for carousel slide 3) <button onclick="generateWitty()" style="float:right;background:#6d28d9;color:#fff;border:none;border-radius:4px;padding:2px 10px;font-size:0.7rem;cursor:pointer">&#x2728; Auto-generate</button></label>
+      <input id="f-witty" class="sb-input" placeholder="A one-liner to cap it off..." />
+    </div>
+
+    <div class="sb-divider"></div>
+
+    <div class="sb-section">
+      <label class="sb-label">Suggested Hashtags <button onclick="copyHashtags()" id="copy-ht-btn" style="float:right;background:#6d28d9;color:#fff;border:none;border-radius:4px;padding:2px 10px;font-size:0.7rem;cursor:pointer">&#x1F4CB; Copy</button></label>
+      <div id="hashtag-box" style="background:#1e1e2e;border:1px solid #374151;border-radius:6px;padding:0.5rem 0.6rem;font-size:0.72rem;color:#9ca3af;line-height:1.7;min-height:2rem;word-break:break-all;cursor:text;user-select:all"></div>
+    </div>
+
+    <div class="sb-divider"></div>
+
+    <div class="sb-section">
+      <label class="sb-label">Preview mode</label>
+      <div class="mode-toggle">
+        <button class="mode-btn active" onclick="setMode('single',this)">Single Image</button>
+        <button class="mode-btn" onclick="setMode('carousel',this)">Carousel</button>
+      </div>
+    </div>
+
+    <button class="sb-btn sb-btn-primary" onclick="updatePreview()" style="margin-bottom:0.5rem">&#x1F504; Update Preview</button>
+    <button class="sb-btn sb-btn-secondary" onclick="exportAll()" id="export-btn">&#x1F4BE; Export PNG(s)</button>
+    <p id="export-status" style="color:#6b7280;font-size:0.75rem;margin-top:0.5rem;text-align:center"></p>
+  </div>
+
+  <!-- PREVIEW -->
+  <div class="preview-area" id="preview-area"></div>
+</div>
+
+<script>
+  // ── FALLACY DATA (same as main site) ──
+  var FALLACIES={adHominem:{name:"Ad Hominem",emoji:"\u{1F94A}"},strawMan:{name:"Straw Man",emoji:"\u{1F33E}"},slipperySlope:{name:"Slippery Slope",emoji:"\u{1F3BF}"},falseDilemma:{name:"False Dilemma",emoji:"\u2696\uFE0F"},appealToAuthority:{name:"Appeal to Authority",emoji:"\u{1F468}\u200D\u2696\uFE0F"},bandwagon:{name:"Bandwagon",emoji:"\u{1F682}"},redHerring:{name:"Red Herring",emoji:"\u{1F41F}"},tuQuoque:{name:"Tu Quoque",emoji:"\u{1FA83}"},appealToEmotion:{name:"Appeal to Emotion",emoji:"\u{1F622}"},hastyGeneralization:{name:"Hasty Generalization",emoji:"\u{1F3C3}"},noTrueScotsman:{name:"No True Scotsman",emoji:"\u{1F3F4}\u{E0067}\u{E0062}\u{E0073}\u{E0063}\u{E0074}\u{E007F}"},circularReasoning:{name:"Circular Reasoning",emoji:"\u{1F504}"},fairPlay:{name:"Fair Play",emoji:"\u26BD"}};
+  var _FALLACY_ALIAS=(function(){var m={};Object.keys(FALLACIES).forEach(function(k){m[k]=k;m[k.toLowerCase()]=k});m.ad_hominem='adHominem';m.straw_man='strawMan';m.strawman='strawMan';m.slippery_slope='slipperySlope';m.false_dilemma='falseDilemma';m.appeal_to_authority='appealToAuthority';m.red_herring='redHerring';m.tu_quoque='tuQuoque';m.whataboutism='tuQuoque';m.appeal_to_emotion='appealToEmotion';m.hasty_generalization='hastyGeneralization';m.no_true_scotsman='noTrueScotsman';m.circular_reasoning='circularReasoning';m.fair_play='fairPlay';m.fairplay='fairPlay';m.loaded_language='appealToEmotion';m.loadedlanguage='appealToEmotion';m.hyperbole='appealToEmotion';m.cherry_picking='hastyGeneralization';m.cherrypicking='hastyGeneralization';return m})();
+  function _nft(t){if(!t)return t;return _FALLACY_ALIAS[t]||_FALLACY_ALIAS[t.toLowerCase()]||t}
+
+  // ── WITTY ONE-LINER GENERATOR ──
+  var WITTY_TEMPLATES={
+    red:{
+      adHominem:["When you can't beat the argument, beat up the arguer.","Attacking the person instead of the point — classic.","The argument left the room; the insults stayed."],
+      strawMan:["That argument was never made — but it sure got destroyed.","Fighting a ghost of an argument nobody raised.","Impressive takedown of a point nobody made."],
+      slipperySlope:["One small step for logic, one giant leap to absurdity.","From A to Z with nothing in between.","Skipped a few steps — and all the logic."],
+      falseDilemma:["Two choices where a dozen exist — how convenient.","The world isn't binary, but this argument sure is.","When your only options are 'my way' or 'chaos.'"],
+      appealToAuthority:["Just because someone important said it doesn't make it true.","Name-dropping isn't evidence.","Authority cited. Evidence? Not so much."],
+      bandwagon:["Everyone's doing it — that's not the flex you think it is.","Popularity isn't proof.","A million people can be wrong at the same time."],
+      redHerring:["Look over there! (While the real issue walks away.)","Masterful topic change — too bad we noticed.","That's a very interesting point about something completely irrelevant."],
+      tuQuoque:["'But you did it too!' isn't the defense you think it is.","Two wrongs still don't make a right.","Whataboutism: the refuge of the cornered."],
+      appealToEmotion:["Feelings are valid. As evidence? Not so much.","Heavy on emotion, light on logic.","The heartstrings were pulled; the facts were not."],
+      hastyGeneralization:["Sample size of 'trust me bro.'","One example doesn't write the rule.","That's a pretty big conclusion from a pretty small sample."],
+      noTrueScotsman:["Moving the goalposts to protect the narrative.","Apparently, nobody who disagrees counts.","The definition keeps changing to fit the argument."],
+      circularReasoning:["It's true because it's true — case closed, apparently.","Going in circles doesn't mean you're making progress.","The logic is airtight... in a loop."],
+      _default:["The flag is up. The reasoning is down.","Logic left the chat.","The ref has seen enough."]
+    },
+    yellow:{
+      _default:["Not the worst call, but the ref is watching.","Close to fair play — but not quite there yet.","Caution: logic is getting shaky.","Tread carefully — that reasoning's on thin ice.","A yellow card today could be a red card tomorrow.","The argument survives, but just barely."]
+    },
+    green:{
+      _default:["This is how you make a point.","Clean argument. No flags on the play.","Reasoning so fair it deserves a trophy.","When logic shows up and does its job.","Fair play at its finest.","No fallacies here — just solid reasoning."]
+    }
+  };
+
+  function generateWitty(){
+    var severity=document.getElementById('f-severity').value;
+    var fallacyLines=document.getElementById('f-fallacies').value.trim().split('\n').filter(function(l){return l.trim()});
+    var speaker=document.getElementById('f-speaker').value.trim();
+
+    // Find matching fallacy key
+    var fallacyKey=null;
+    if(fallacyLines.length){
+      var firstName=fallacyLines[0].replace(/^.+?\s+/,'').trim().toLowerCase();
+      Object.keys(FALLACIES).forEach(function(k){
+        if(FALLACIES[k].name.toLowerCase()===firstName)fallacyKey=k;
+      });
+    }
+
+    var pool;
+    if(severity==='red'&&fallacyKey&&WITTY_TEMPLATES.red[fallacyKey]){
+      pool=WITTY_TEMPLATES.red[fallacyKey].concat(WITTY_TEMPLATES.red._default);
+    }else if(severity==='red'){
+      pool=WITTY_TEMPLATES.red._default;
+    }else if(severity==='green'){
+      pool=WITTY_TEMPLATES.green._default;
+    }else{
+      pool=WITTY_TEMPLATES.yellow._default;
+    }
+
+    var line=pool[Math.floor(Math.random()*pool.length)];
+    document.getElementById('f-witty').value=line;
+    updatePreview();
+  }
+
+  // ── HASHTAG GENERATOR ──
+  var BASE_HASHTAGS=['#FallacyFlag','#LogicalFallacy','#CriticalThinking','#FactCheck','#Rhetoric','#MediaLiteracy','#ThinkCritically'];
+
+  var FALLACY_HASHTAGS={
+    adHominem:['#AdHominem','#PersonalAttack'],
+    strawMan:['#StrawMan','#Misrepresentation'],
+    slipperySlope:['#SlipperySlope','#FearMongering'],
+    falseDilemma:['#FalseDilemma','#FalseChoice','#BlackAndWhite'],
+    appealToAuthority:['#AppealToAuthority','#FalseAuthority'],
+    bandwagon:['#Bandwagon','#GroupThink'],
+    redHerring:['#RedHerring','#Distraction','#Deflection'],
+    tuQuoque:['#TuQuoque','#Whataboutism'],
+    appealToEmotion:['#AppealToEmotion','#LoadedLanguage','#EmotionalManipulation'],
+    hastyGeneralization:['#HastyGeneralization','#CherryPicking'],
+    noTrueScotsman:['#NoTrueScotsman','#MovingTheGoalposts'],
+    circularReasoning:['#CircularReasoning','#BeggingTheQuestion']
+  };
+
+  var SEVERITY_HASHTAGS={red:['#RedCard','#Flagged','#FoulPlay'],yellow:['#YellowCard','#Caution','#OnNotice'],green:['#FairPlay','#SoundReasoning','#CleanArgument']};
+
+  var TOPIC_HASHTAGS={politic:['#Politics','#PoliticalRhetoric','#Congress'],senat:['#Senate','#USPolitics'],house:['#Congress','#HouseFloor'],presid:['#POTUS','#WhiteHouse'],econom:['#Economy','#EconomicPolicy'],health:['#Healthcare','#HealthPolicy'],immigr:['#Immigration','#ImmigrationDebate'],climat:['#Climate','#ClimatePolicy'],gun:['#GunControl','#GunDebate','#2A'],abort:['#ReproductiveRights'],tax:['#TaxPolicy','#Taxes'],educ:['#Education','#EdPolicy']};
+
+  function buildHashtags(){
+    var severity=document.getElementById('f-severity').value;
+    var fallacyLines=document.getElementById('f-fallacies').value.trim().split('\n').filter(function(l){return l.trim()});
+    var context=(document.getElementById('f-context').value+' '+document.getElementById('f-quote').value).toLowerCase();
+    var tags=[].concat(BASE_HASHTAGS);
+
+    // Add severity tags
+    tags=tags.concat(SEVERITY_HASHTAGS[severity]||[]);
+
+    // Add fallacy-specific tags
+    fallacyLines.forEach(function(line){
+      var name=line.replace(/^.+?\s+/,'').trim().toLowerCase();
+      Object.keys(FALLACIES).forEach(function(k){
+        if(FALLACIES[k].name.toLowerCase()===name&&FALLACY_HASHTAGS[k]){
+          tags=tags.concat(FALLACY_HASHTAGS[k]);
+        }
+      });
+    });
+
+    // Add topic tags based on context/quote content
+    Object.keys(TOPIC_HASHTAGS).forEach(function(keyword){
+      if(context.indexOf(keyword)!==-1)tags=tags.concat(TOPIC_HASHTAGS[keyword]);
+    });
+
+    // Deduplicate
+    var seen={};var unique=[];
+    tags.forEach(function(t){var low=t.toLowerCase();if(!seen[low]){seen[low]=true;unique.push(t)}});
+
+    return unique;
+  }
+
+  function renderHashtags(){
+    var box=document.getElementById('hashtag-box');
+    if(!box)return;
+    var tags=buildHashtags();
+    box.innerHTML=tags.map(function(t){return'<span style="color:#a78bfa;margin-right:6px">'+t+'</span>'}).join('');
+  }
+
+  function copyHashtags(){
+    var tags=buildHashtags();
+    var text=tags.join(' ');
+    navigator.clipboard.writeText(text).then(function(){
+      var btn=document.getElementById('copy-ht-btn');
+      btn.textContent='\u2705 Copied!';
+      setTimeout(function(){btn.innerHTML='&#x1F4CB; Copy'},1500);
+    });
+  }
+
+  var mode='single';
+  var allCards=[];
+
+  function setMode(m,btn){
+    mode=m;
+    document.querySelectorAll('.mode-btn').forEach(function(b){b.classList.remove('active')});
+    btn.classList.add('active');
+    updatePreview();
+  }
+
+  function getFormData(){
+    var q=document.getElementById('f-quote').value.trim();
+    var speaker=document.getElementById('f-speaker').value.trim();
+    var severity=document.getElementById('f-severity').value;
+    var context=document.getElementById('f-context').value.trim();
+    var fallacyLines=document.getElementById('f-fallacies').value.trim().split('\n').filter(function(l){return l.trim()});
+    var analysisRaw=document.getElementById('f-analysis').value.trim();
+    var witty=document.getElementById('f-witty').value.trim();
+
+    // Split analysis into per-fallacy chunks (separated by double newlines)
+    var analysisParts=analysisRaw.split(/\n\s*\n/).filter(function(p){return p.trim()});
+
+    var fallacies=fallacyLines.map(function(line,i){
+      var parts=line.trim();
+      // Try to split emoji from name
+      var match=parts.match(/^(.+?)\s+(.+)$/);
+      var emoji=match?match[1]:'\u26A0\uFE0F';
+      var name=match?match[2]:parts;
+      return{emoji:emoji,name:name,analysis:analysisParts[i]||''};
+    });
+
+    return{quote:q||'No quote provided',speaker:speaker||'Unknown Speaker',severity:severity,context:context||'',fallacies:fallacies,analysis:analysisRaw,witty:witty};
+  }
+
+  function truncate(s,max){return s.length>max?s.substring(0,max-3)+'...':s}
+
+  // ── BUILD SINGLE IMAGE ──
+  function buildSingle(d){
+    var sev=d.severity;
+    var badgeClass=sev==='red'?'b-red':sev==='green'?'b-green':'b-yellow';
+    var stripeClass=sev==='red'?'str-red':sev==='green'?'str-green':'str-yellow';
+    var tagClass=sev==='red'?'ft-red':sev==='green'?'ft-green':'ft-yellow';
+    var badgeText=sev==='red'?'\u{1F7E5} Red Card':sev==='green'?'\u26BD Fair Play':'\u{1F7E8} Yellow Card';
+    var quoteDisplay=truncate(d.quote,220);
+
+    var h='<div class="ig-card sev-'+sev+'">';
+    h+='<div class="ig-stripe '+stripeClass+'"></div>';
+    h+='<div class="ig-inner">';
+    // Header
+    h+='<div class="ig-header"><div class="ig-logo">FallacyFlag<span class="ig-logo-sub">Raising the flag on faulty reasoning</span></div><div class="ig-badge '+badgeClass+'">'+badgeText+'</div></div>';
+    // Speaker
+    h+='<div class="ig-speaker">'+esc(d.speaker)+'</div>';
+    if(d.context)h+='<div class="ig-context">'+esc(d.context)+'</div>';
+    // Quote
+    h+='<div class="ig-quote"><div class="ig-quote-text"><span class="ig-quote-mark">\u201C</span>'+esc(quoteDisplay)+'\u201D</div></div>';
+    // Fallacy tags
+    if(d.fallacies.length){
+      h+='<div class="ig-fallacies">';
+      d.fallacies.forEach(function(f){h+='<div class="ig-fallacy-tag '+tagClass+'">'+f.emoji+' '+esc(f.name)+'</div>'});
+      h+='</div>';
+    }
+    // Footer
+    h+='<div class="ig-footer"><span class="ig-url">fallacyflag.com</span><span class="ig-handle">@FallacyFlagHQ</span></div>';
+    h+='</div></div>';
+    return h;
+  }
+
+  // ── BUILD CAROUSEL SLIDES ──
+  function buildCarouselSlide1(d){
+    var sev=d.severity;
+    var stripeClass=sev==='red'?'str-red':sev==='green'?'str-green':'str-yellow';
+    var quoteDisplay=truncate(d.quote,280);
+
+    var h='<div class="ig-card sev-'+sev+' slide-quote">';
+    h+='<div class="ig-stripe '+stripeClass+'"></div>';
+    h+='<div class="ig-inner">';
+    h+='<div class="ig-header"><div class="ig-logo">FallacyFlag</div></div>';
+    h+='<div class="ig-speaker">'+esc(d.speaker)+'</div>';
+    if(d.context)h+='<div class="ig-context">'+esc(d.context)+'</div>';
+    h+='<div class="ig-quote"><div class="ig-quote-text"><span class="ig-quote-mark">\u201C</span>'+esc(quoteDisplay)+'\u201D</div></div>';
+    h+='<div class="ig-footer"><span class="ig-url">fallacyflag.com</span><span class="ig-handle">Swipe for breakdown \u2192</span></div>';
+    h+='</div></div>';
+    return h;
+  }
+
+  function buildCarouselSlide2(d){
+    var sev=d.severity;
+    var stripeClass=sev==='red'?'str-red':sev==='green'?'str-green':'str-yellow';
+    var nameClass=sev==='red'?'bn-red':sev==='green'?'bn-green':'bn-yellow';
+    var fc=d.fallacies.length;
+    // Scale text and spacing based on fallacy count so they all fit
+    var nameFontSize=fc>2?22:fc>1?25:28;
+    var analysisFontSize=fc>2?17:fc>1?19:22;
+    var itemMargin=fc>2?14:fc>1?20:28;
+    var analysisMaxChars=fc>2?100:fc>1?140:200;
+
+    var h='<div class="ig-card sev-'+sev+' slide-breakdown">';
+    h+='<div class="ig-stripe '+stripeClass+'"></div>';
+    h+='<div class="ig-breakdown-inner">';
+    h+='<div class="ig-header"><div class="ig-logo">FallacyFlag</div></div>';
+    h+='<div class="ig-breakdown-title">'+(sev==='green'?'Why This Is Sound Reasoning':'Fallac'+(fc===1?'y':'ies')+' Detected')+'</div>';
+
+    if(fc){
+      d.fallacies.forEach(function(f){
+        h+='<div class="ig-breakdown-item" style="margin-bottom:'+itemMargin+'px"><div class="ig-breakdown-name '+nameClass+'" style="font-size:'+nameFontSize+'px"><span style="font-size:'+(nameFontSize+4)+'px">'+f.emoji+'</span> '+esc(f.name)+'</div>';
+        var thisAnalysis=f.analysis||'';
+        if(thisAnalysis)h+='<div class="ig-breakdown-analysis" style="font-size:'+analysisFontSize+'px">'+esc(truncate(thisAnalysis,analysisMaxChars))+'</div>';
+        h+='</div>';
+      });
+    }else if(d.analysis){
+      h+='<div class="ig-breakdown-analysis" style="font-size:26px;flex:1;display:flex;align-items:center">'+esc(d.analysis)+'</div>';
+    }
+
+    h+='<div class="ig-footer"><span class="ig-url">fallacyflag.com</span><span class="ig-handle">@FallacyFlagHQ</span></div>';
+    h+='</div></div>';
+    return h;
+  }
+
+  function buildCarouselSlide3(d){
+    var sev=d.severity;
+    var stripeClass=sev==='red'?'str-red':sev==='green'?'str-green':'str-yellow';
+    var rulingClass=sev==='red'?'rt-red':sev==='green'?'rt-green':'rt-yellow';
+    var emoji=sev==='red'?'\u{1F7E5}':sev==='green'?'\u26BD':'\u{1F7E8}';
+    var label=sev==='red'?'Red Card':sev==='green'?'Fair Play':'Yellow Card';
+
+    var h='<div class="ig-card sev-'+sev+'">';
+    h+='<div class="ig-stripe '+stripeClass+'"></div>';
+    h+='<div class="ig-inner">';
+    h+='<div class="ig-header"><div class="ig-logo">FallacyFlag</div></div>';
+    h+='<div class="ig-ruling-center">';
+    h+='<div class="ig-ruling-emoji">'+emoji+'</div>';
+    h+='<div class="ig-ruling-text '+rulingClass+'">'+label+'</div>';
+    if(d.witty)h+='<div class="ig-ruling-witty">'+esc(d.witty)+'</div>';
+    h+='</div>';
+    h+='<div class="ig-footer"><span class="ig-url">fallacyflag.com</span><span class="ig-handle">@FallacyFlagHQ</span></div>';
+    h+='</div></div>';
+    return h;
+  }
+
+  function esc(s){return s?s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'):''}
+
+  // ── PREVIEW ──
+  var previewScale=0.4;
+  function updatePreview(){
+    var d=getFormData();
+    var area=document.getElementById('preview-area');
+
+    if(mode==='single'){
+      var html=buildSingle(d);
+      area.innerHTML='<div class="preview-label">Single Image (1080\u00D71080)</div><div class="preview-frame" id="export-0" style="transform:scale('+previewScale+');width:1080px;height:1080px">'+html+'</div>';
+    }else{
+      var s1=buildCarouselSlide1(d);
+      var s2=buildCarouselSlide2(d);
+      var s3=buildCarouselSlide3(d);
+      area.innerHTML='<div class="preview-label">Carousel (3 slides, 1080\u00D71080 each)</div><div class="carousel-row"><div><div style="color:#4b5563;font-size:0.7rem;text-align:center;margin-bottom:0.3rem">Slide 1 — The Quote</div><div class="preview-frame" id="export-0" style="transform:scale('+previewScale+');width:1080px;height:1080px">'+s1+'</div></div><div><div style="color:#4b5563;font-size:0.7rem;text-align:center;margin-bottom:0.3rem">Slide 2 — The Breakdown</div><div class="preview-frame" id="export-1" style="transform:scale('+previewScale+');width:1080px;height:1080px">'+s2+'</div></div><div><div style="color:#4b5563;font-size:0.7rem;text-align:center;margin-bottom:0.3rem">Slide 3 — The Ruling</div><div class="preview-frame" id="export-2" style="transform:scale('+previewScale+');width:1080px;height:1080px">'+s3+'</div></div></div>';
+    }
+    renderHashtags();
+  }
+
+  // ── EXPORT ──
+  async function exportAll(){
+    var btn=document.getElementById('export-btn');
+    var status=document.getElementById('export-status');
+    btn.disabled=true;btn.textContent='\u231B Exporting...';
+
+    var slides=mode==='single'?1:3;
+    for(var i=0;i<slides;i++){
+      var el=document.getElementById('export-'+i);
+      if(!el)continue;
+      // Reset transform for full-res capture
+      var origTransform=el.style.transform;
+      el.style.transform='none';
+      try{
+        var canvas=await html2canvas(el,{scale:1,useCORS:true,width:1080,height:1080,backgroundColor:null});
+        var link=document.createElement('a');
+        link.download=mode==='single'?'fallacyflag-ig.png':'fallacyflag-ig-slide'+(i+1)+'.png';
+        link.href=canvas.toDataURL('image/png');
+        link.click();
+      }catch(e){
+        status.textContent='Export error: '+e.message;
+      }
+      el.style.transform=origTransform;
+    }
+    btn.disabled=false;btn.textContent='\u{1F4BE} Export PNG(s)';
+    status.textContent='\u2705 '+slides+' image'+(slides>1?'s':'')+' exported!';
+    setTimeout(function(){status.textContent=''},3000);
+  }
+
+  // ── LOAD CARDS FROM API ──
+  function loadCard(card){
+    document.getElementById('f-quote').value=card.quote||'';
+    document.getElementById('f-speaker').value=card.speaker||'';
+    document.getElementById('f-severity').value=card.severity||'yellow';
+    document.getElementById('f-context').value=card.context||'';
+
+    var fallacyLines=card.fallacies.map(function(f){
+      var ft=_nft(f.type);
+      var info=FALLACIES[ft];
+      var emoji=info?info.emoji:'\u26A0\uFE0F';
+      var name=info?info.name:(ft||'Unknown');
+      return emoji+' '+name;
+    });
+    document.getElementById('f-fallacies').value=fallacyLines.join('\n');
+
+    // Build analysis from all fallacy analyses
+    var analyses=card.fallacies.map(function(f){return f.analysis||''}).filter(Boolean);
+    document.getElementById('f-analysis').value=analyses.join('\n\n');
+
+    // Auto-generate witty one-liner
+    generateWitty();
+
+    updatePreview();
+  }
+
+  function buildCardPicker(cards){
+    var picker=document.getElementById('card-picker');
+    var h='';
+    cards.forEach(function(c,i){
+      var dotColor=c.severity==='green'?'#16a34a':c.severity==='red'?'#e53935':'#facf39';
+      var label=c.speaker.length>30?c.speaker.substring(0,28)+'...':c.speaker;
+      var quoteSnip=c.quote.length>50?c.quote.substring(0,48)+'...':c.quote;
+      h+='<div class="card-pick-item" onclick="loadCard(allCards['+i+'])"><div class="card-pick-dot" style="background:'+dotColor+'"></div><div><strong style="color:#e2e8f0;font-size:0.78rem">'+esc(label)+'</strong><br><span style="color:#6b7280;font-size:0.7rem">'+esc(quoteSnip)+'</span></div></div>';
+    });
+    if(!cards.length)h='<div style="padding:1rem;color:#4b5563;font-size:0.8rem;text-align:center">No cards loaded. Enter data manually or wait for API.</div>';
+    picker.innerHTML=h;
+  }
+
+  // Load cards from API + hardcoded
+  var HARDCODED_CARDS=[{"id":2,"topics":["Immigration"],"quote":"My opponent wants to defund the police, open the borders, and hand the keys to the country over to criminals. That's what their immigration plan really means.","speaker":"Rep. Elise Stefanik (R-NY)","context":"Campaign rally remarks on immigration reform, February 27, 2026","fallacies":[{"type":"strawMan","ruling":"SIMULATION","analysis":"The opponent\u2019s actual plan involves restructuring border resources and creating new legal pathways \u2014 not \u2018defunding police\u2019 or \u2018opening borders.\u2019 It\u2019s much easier to win an argument when you get to write both sides of it."},{"type":"appealToEmotion","ruling":"PROFESSIONAL FOUL","analysis":"Invoking \u2018handing keys to criminals\u2019 is designed to trigger a fear response that bypasses the policy discussion entirely. If your argument needs a horror movie trailer to land, the logic probably can\u2019t stand on its own."}],"severity":"red"},{"id":10,"topics":["Gun Policy"],"quote":"I support expanding background checks. Here's why: peer-reviewed studies from UC Davis and Johns Hopkins found that states with comprehensive background check laws saw a 15% reduction in firearm homicides. Now, critics raise valid concerns about enforcement gaps and rural access to licensed dealers \u2014 those are real implementation challenges we'd need to address in the bill.","speaker":"Sen. Chris Murphy (D-CT)","context":"Senate floor speech on firearms legislation, March 11, 2026","fallacies":[{"type":"fairPlay","ruling":"FAIR PLAY","analysis":"Cites specific research, quantifies the claim, and \u2014 crucially \u2014 acknowledges the counterarguments rather than pretending they don\u2019t exist. This is what it looks like when someone trusts their audience to handle nuance."}],"severity":"green"},{"id":8,"topics":["Iran","Foreign Policy"],"quote":"Anyone advocating for diplomacy with Iran is naive at best and an apologist for terrorism at worst. Iran funds Hamas, Hezbollah, and the Houthis. You cannot negotiate with evil. Period. If you sit down at the table with the mullahs, you have blood on your hands.","speaker":"Rep. Mike Waltz (R-FL)","context":"House Armed Services Committee hearing, February 19, 2026","fallacies":[{"type":"falseDilemma","ruling":"HANDBALL","analysis":"The framing creates a binary: you\u2019re either for confrontation or you\u2019re an apologist for terrorism. This eliminates every position between total isolation and capitulation \u2014 which happens to be where most actual foreign policy lives."},{"type":"adHominem","ruling":"SHIRT PULL","analysis":"Calling diplomacy advocates \u2018naive\u2019 or \u2018apologists for terrorism\u2019 attacks their character and motives rather than engaging with their actual proposals. It\u2019s easier to discredit a person than dismantle a policy \u2014 that\u2019s the whole point."},{"type":"appealToEmotion","ruling":"SIMULATION","analysis":"\u2018Blood on your hands\u2019 and \u2018negotiate with evil\u2019 are designed to make any counterargument feel morally repugnant. It\u2019s a rhetorical trap: once you\u2019ve framed the debate as good versus evil, anyone who disagrees is auditioning for the wrong team."}],"severity":"red"}];
+
+  var HIDE_IDS=[5001,5002,1001,1002,1003,1004,1005,1006,1007,1008];
+
+  Promise.all([
+    fetch('/api/get-analyses?type=main').then(function(r){return r.json()}).catch(function(){return[]}),
+    fetch('/api/get-analyses?type=potus').then(function(r){return r.json()}).catch(function(){return[]})
+  ]).then(function(results){
+    var main=results[0]||[];
+    var potus=results[1]||[];
+    var seen=new Set();
+    var combined=[];
+    main.concat(potus).forEach(function(a){if(!seen.has(a.id)&&!HIDE_IDS.includes(a.id)){seen.add(a.id);combined.push(a)}});
+    if(!combined.length)combined=HARDCODED_CARDS;
+    allCards=combined;
+    buildCardPicker(allCards);
+    // Auto-load first card
+    if(allCards.length){loadCard(allCards[0])}
+  }).catch(function(){
+    allCards=HARDCODED_CARDS;
+    buildCardPicker(allCards);
+    if(allCards.length)loadCard(allCards[0]);
+  });
+
+  // Initial empty preview
+  updatePreview();
+</script>
+
+<footer style="border-top:1px solid #374151;padding:1.2rem 1rem;text-align:center;margin-top:1rem">
+  <p style="color:#6b7280;font-size:0.75rem">&copy; 2026 FallacyFlag. All rights reserved.</p>
+  <p style="color:#4b5563;font-size:0.65rem;margin-top:0.3rem">Internal tool &mdash; not for public distribution.</p>
+</footer>
+</body>
+</html>

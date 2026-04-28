@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Submit a Quote — FallacyFlag</title>
+  <meta name="description" content="Think you spotted a logical fallacy (or a fair play) in the wild? Submit the quote and we'll review it." />
+  <meta property="og:title" content="Submit a Quote — FallacyFlag" />
+  <meta property="og:description" content="Spotted a logical fallacy in the wild? Submit it for review." />
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" />
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#111118" />
+  <link rel="apple-touch-icon" href="/icon-192x192.png" />
+  <style>
+    body { background: #111118; background-image: repeating-linear-gradient(to bottom, rgba(229,57,53,0.28) 0px, rgba(229,57,53,0.10) 200px, rgba(200,200,215,0.10) 500px, rgba(200,200,215,0.04) 650px, rgba(15,15,25,0.95) 800px, rgba(229,57,53,0.28) 1100px); color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; }
+    *, *::before, *::after { box-sizing: border-box; }
+    .bg-card { background: #1e293b; }
+    .bg-card-inner { background: #334155; }
+    .border-dim { border-color: #334155; }
+    .border-mid { border-color: #475569; }
+    .text-yellow { color: #facf39; }
+    .text-dim { color: #9ca3af; }
+    .text-dimmer { color: #6b7280; }
+    .text-dimmest { color: #4b5563; }
+    .bg-yellow-btn { background: #facf39; }
+    .bg-yellow-btn:hover { background: #ffe066; }
+    .text-green-accent { color: #4ade80; }
+    .text-red-accent { color: #f87171; }
+    .nav-bar { position: sticky; top: 0; z-index: 50; background: rgba(17,17,24,0.97); backdrop-filter: blur(12px); border-bottom: 1px solid #ffffff; }
+    textarea:focus, input:focus, select:focus { outline: none; border-color: #facf39; }
+    button { cursor: pointer; }
+    /* Hamburger menu */
+    .hamburger { display: none; background: none; border: none; cursor: pointer; padding: 0.5rem; }
+    .hamburger span { display: block; width: 22px; height: 2px; background: #9ca3af; margin: 5px 0; border-radius: 2px; transition: all 0.3s; }
+    .hamburger.open span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+    .hamburger.open span:nth-child(2) { opacity: 0; }
+    .hamburger.open span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
+    .mobile-menu { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(17,17,24,0.98); z-index: 100; padding: 5rem 2rem 2rem; overflow-y: auto; }
+    .mobile-menu.open { display: flex; flex-direction: column; align-items: center; gap: 0.25rem; }
+    .mobile-menu a, .mobile-menu span { display: block; color: #d1d5db; font-size: 1.1rem; font-weight: 500; padding: 0.75rem 1.5rem; text-decoration: none; text-align: center; border-radius: 0.5rem; transition: all 0.2s; width: 100%; max-width: 20rem; }
+    .mobile-menu a:hover { background: rgba(250,207,57,0.1); color: #facf39; }
+    .mobile-menu .mobile-active { color: #facf39; font-weight: 700; background: rgba(250,207,57,0.08); }
+    .mobile-menu .mobile-divider { height: 1px; background: #334155; margin: 0.5rem auto; width: 100%; max-width: 16rem; }
+    .mobile-close { position: absolute; top: 1rem; right: 1.5rem; background: none; border: none; color: #9ca3af; font-size: 1.75rem; cursor: pointer; padding: 0.5rem; z-index: 101; }
+
+    @media (max-width: 768px) { .nav-links { display: none !important; } .hamburger { display: block; } }
+    @media (min-width: 769px) { .mobile-menu { display: none !important; } }
+
+    .form-label { color: #d1d5db; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.35rem; display: block; }
+    .form-input { width: 100%; background: #0f172a; color: #fff; border: 1px solid #334155; border-radius: 0.75rem; padding: 0.75rem 1rem; font-size: 0.95rem; transition: border-color 0.2s; }
+    .form-hint { color: #6b7280; font-size: 0.75rem; margin-top: 0.25rem; }
+    .step-num { width: 2rem; height: 2rem; border-radius: 50%; background: #facf39; color: #111827; font-weight: 800; font-size: 0.85rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav class="nav-bar">
+    <div style="max-width:72rem" class="mx-auto px-4 py-3 flex items-center justify-between">
+      <a href="index.html" class="flex items-center" style="text-decoration:none">
+        <img src="logo-nav.png" alt="FallacyFlag" style="height:28px; width:auto" />
+      </a>
+      <div class="nav-links flex items-center gap-3" style="font-size:0.85rem">
+        <a href="index.html" class="text-dim hover:text-white" style="text-decoration:none; transition:color 0.2s">Home</a>
+        <a href="index.html#reference" class="text-dim hover:text-white" style="text-decoration:none; transition:color 0.2s">Fallacy Guide</a>
+        <a href="index.html#latest" class="text-dim hover:text-white" style="text-decoration:none; transition:color 0.2s">Latest Calls</a>
+        <a href="potus.html" class="text-dim hover:text-white" style="text-decoration:none; transition:color 0.2s">&#127482;&#127480; POTUS Watch</a>
+        <a href="index.html#analyzer" class="text-dim hover:text-white" style="text-decoration:none; transition:color 0.2s">Analyzer</a>
+        <a href="index.html#leaderboard" class="text-dim hover:text-white" style="text-decoration:none; transition:color 0.2s">Standings</a>
+        <a href="archive.html" class="text-dim hover:text-white" style="text-decoration:none; transition:color 0.2s">Archive</a>
+        <span class="text-yellow font-semibold" style="border-bottom:2px solid #facf39; padding-bottom:2px">Submit a Quote</span>
+        <a href="weekly.html" class="text-dim hover:text-white" style="text-decoration:none; transition:color 0.2s">Weekly Digest</a>
+        <a href="https://x.com/FallacyFlagHQ" target="_blank" rel="noopener noreferrer" class="text-dim hover:text-blue-400" style="text-decoration:none; transition:color 0.2s">&#120143;</a>
+        <a href="https://bsky.app/profile/fallacyflaghq.bsky.social" target="_blank" rel="noopener noreferrer" class="text-dim hover:text-blue-400" style="text-decoration:none; transition:color 0.2s">&#129419;</a>
+
+      </div>
+      <button class="hamburger" onclick="toggleMobileMenu()" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </nav>
+  <div class="mobile-menu" id="mobile-menu">
+    <button class="mobile-close" onclick="toggleMobileMenu()">&times;</button>
+    <a href="index.html">Home</a>
+    <a href="index.html#reference">Fallacy Guide</a>
+    <a href="index.html#latest">Latest Calls</a>
+    <a href="potus.html">&#127482;&#127480; POTUS Watch</a>
+    <a href="index.html#analyzer">Analyzer</a>
+    <a href="index.html#leaderboard">Standings</a>
+    <a href="archive.html">Archive</a>
+    <div class="mobile-divider"></div>
+    <span class="mobile-active">Submit a Quote</span>
+    <a href="weekly.html">Weekly Digest</a>
+    <div class="mobile-divider"></div>
+    <a href="https://x.com/FallacyFlagHQ" target="_blank" rel="noopener noreferrer">&#120143; @FallacyFlagHQ</a>
+    <a href="https://bsky.app/profile/fallacyflaghq.bsky.social" target="_blank" rel="noopener noreferrer">&#129419; Bluesky</a>
+
+  </div>
+
+  <!-- HERO -->
+  <header style="max-width:56rem" class="mx-auto px-4 pt-16 pb-8 text-center">
+    <div class="mb-4" style="font-size:3rem">&#128172;</div>
+    <h1 class="text-yellow text-4xl font-bold mb-4">Submit a Quote</h1>
+    <p class="text-dim" style="max-width:36rem; margin:0 auto; line-height:1.7">
+      Think you spotted a logical fallacy in the wild? Drop the quote below and we'll put it under the microscope. If it makes the cut, it'll show up on the site with full analysis.
+    </p>
+  </header>
+
+  <!-- HOW IT WORKS -->
+  <section style="max-width:48rem" class="mx-auto px-4 py-8">
+    <div class="bg-card rounded-2xl p-6 md:p-8 border-dim" style="border-width:1px">
+      <h2 class="text-white font-bold text-lg mb-5">How It Works</h2>
+      <div style="display:flex;flex-direction:column;gap:1.25rem">
+        <div style="display:flex;gap:0.75rem;align-items:flex-start">
+          <div class="step-num">1</div>
+          <div><p class="text-white font-semibold" style="font-size:0.9rem">You submit the quote</p><p class="text-gray-200" style="font-size:0.95rem;line-height:1.6">Paste the exact words, tell us who said it and where. The more context, the better the analysis.</p></div>
+        </div>
+        <div style="display:flex;gap:0.75rem;align-items:flex-start">
+          <div class="step-num">2</div>
+          <div><p class="text-white font-semibold" style="font-size:0.9rem">We review it</p><p class="text-gray-200" style="font-size:0.95rem;line-height:1.6">Our editorial process checks the logic, identifies any fallacies (or awards a Fair Play), and writes the analysis in our signature voice.</p></div>
+        </div>
+        <div style="display:flex;gap:0.75rem;align-items:flex-start">
+          <div class="step-num">3</div>
+          <div><p class="text-white font-semibold" style="font-size:0.9rem">It goes live</p><p class="text-gray-200" style="font-size:0.95rem;line-height:1.6">Approved submissions appear on the site as full analysis cards with proper attribution. You spotted it &mdash; we'll give credit where it's due.</p></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- SUBMISSION FORM -->
+  <section style="max-width:48rem" class="mx-auto px-4 py-8">
+    <div class="bg-card rounded-2xl p-6 md:p-8" style="border: 2px solid #ca8a04">
+      <div class="flex items-center gap-3 mb-6">
+        <span style="font-size:1.75rem">&#128270;</span>
+        <div>
+          <h2 class="text-white text-xl font-bold">Submit for Review</h2>
+          <p class="text-dim text-sm">All fields help us verify and analyze the quote. More detail = better analysis.</p>
+        </div>
+      </div>
+
+      <form id="submit-form" name="quote-submissions" method="POST" data-netlify="true" netlify-honeypot="bot-field" action="/submit-success.html">
+        <input type="hidden" name="form-name" value="quote-submissions" />
+        <p style="display:none"><label>Don't fill this out: <input name="bot-field" /></label></p>
+
+        <!-- Quote -->
+        <div class="mb-5">
+          <label class="form-label" for="sq-quote">The Quote <span style="color:#e53935">*</span></label>
+          <textarea id="sq-quote" name="quote" class="form-input" style="height:8rem; resize:vertical" placeholder='Paste the exact quote here. Example: "If we don&#39;t pass this bill today, the entire economy will collapse and millions will lose everything."' required></textarea>
+          <p class="form-hint">Exact wording matters. Paraphrasing changes the analysis.</p>
+        </div>
+
+        <!-- Speaker -->
+        <div class="mb-5">
+          <label class="form-label" for="sq-speaker">Who said it? <span style="color:#e53935">*</span></label>
+          <input id="sq-speaker" name="speaker" type="text" class="form-input" placeholder="e.g. Sen. John Doe (R-TX), Gov. Jane Smith (D-CA)" required />
+          <p class="form-hint">Full name, title, and party affiliation if applicable.</p>
+        </div>
+
+        <!-- Context -->
+        <div class="mb-5">
+          <label class="form-label" for="sq-context">Where and when? <span style="color:#e53935">*</span></label>
+          <input id="sq-context" name="context" type="text" class="form-input" placeholder="e.g. Senate floor speech on healthcare reform, March 15, 2026" required />
+          <p class="form-hint">Include the setting, event, and date. Links to video or transcripts are a bonus.</p>
+        </div>
+
+        <!-- Source URL -->
+        <div class="mb-5">
+          <label class="form-label" for="sq-source">Source link (optional)</label>
+          <input id="sq-source" name="source-url" type="url" class="form-input" placeholder="https://..." />
+          <p class="form-hint">Video, transcript, or news article where you found the quote.</p>
+        </div>
+
+        <!-- What you spotted -->
+        <div class="mb-5">
+          <label class="form-label" for="sq-fallacy">What do you think you spotted? (optional)</label>
+          <select id="sq-fallacy" name="suspected-fallacy" class="form-input" style="cursor:pointer">
+            <option value="">Not sure / let the refs decide</option>
+            <option value="fairPlay">Fair Play &mdash; Sound reasoning</option>
+            <option value="adHominem">Ad Hominem &mdash; Attacking the person</option>
+            <option value="strawMan">Straw Man &mdash; Misrepresenting the argument</option>
+            <option value="slipperySlope">Slippery Slope &mdash; Extreme chain reaction</option>
+            <option value="falseDilemma">False Dilemma &mdash; Only two options</option>
+            <option value="appealToAuthority">Appeal to Authority</option>
+            <option value="bandwagon">Bandwagon &mdash; Everyone believes it</option>
+            <option value="redHerring">Red Herring &mdash; Changing the subject</option>
+            <option value="tuQuoque">Tu Quoque &mdash; Whataboutism</option>
+            <option value="appealToEmotion">Appeal to Emotion</option>
+            <option value="hastyGeneralization">Hasty Generalization</option>
+            <option value="noTrueScotsman">No True Scotsman</option>
+            <option value="circularReasoning">Circular Reasoning</option>
+          </select>
+          <p class="form-hint">No worries if you're not sure. That's what we're here for.</p>
+        </div>
+
+        <!-- Your name -->
+        <div class="mb-5">
+          <label class="form-label" for="sq-name">Your name or handle (optional)</label>
+          <input id="sq-name" name="submitter-name" type="text" class="form-input" placeholder="@yourhandle or just a first name" />
+          <p class="form-hint">For credit if the quote makes it to the site. Leave blank to stay anonymous.</p>
+        </div>
+
+        <!-- Submit -->
+        <div class="flex flex-wrap gap-3 mt-6">
+          <button type="submit" id="sq-btn" class="bg-yellow-btn text-gray-900 font-bold px-8 py-3 rounded-xl text-lg flex items-center gap-2" style="transition:background 0.2s">&#128230; Submit for Review</button>
+        </div>
+      </form>
+    </div>
+  </section>
+
+  <!-- GUIDELINES -->
+  <section style="max-width:48rem" class="mx-auto px-4 py-8 pb-16">
+    <div class="bg-card-inner rounded-xl p-6 border-dim" style="border-width:1px; border-left:4px solid #facf39">
+      <h3 class="text-yellow font-bold mb-3">Submission Guidelines</h3>
+      <div class="text-gray-200" style="font-size:0.95rem;line-height:1.8">
+        <p style="margin-bottom:0.5rem"><strong class="text-dim">Exact quotes only.</strong> We need the actual words, not a summary. Paraphrasing changes the logic.</p>
+        <p style="margin-bottom:0.5rem"><strong class="text-dim">Public figures, public statements.</strong> We analyze rhetoric from politicians, pundits, and public officials speaking in their public capacity.</p>
+        <p style="margin-bottom:0.5rem"><strong class="text-dim">Context matters.</strong> The same sentence can be a fallacy or a fair play depending on what came before and after it.</p>
+        <p style="margin-bottom:0.5rem"><strong class="text-dim">Both sides welcome.</strong> We're nonpartisan. Submit quotes from any party, any ideology. We call the logic, not the politics.</p>
+        <p><strong class="text-dim">Fair plays too!</strong> Spotted a politician making a genuinely well-reasoned argument? Those are rarer than you'd think, and we love finding them.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer class="border-dim py-10 mt-10" style="border-top-width:1px">
+    <div style="max-width:72rem" class="mx-auto px-4">
+      <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3">
+          <img src="logo-color.png" alt="FallacyFlag" style="height:26px; width:auto" />
+          <span class="text-dimmer text-sm">Raising the flag on faulty reasoning.</span>
+        </div>
+        <div class="text-center md:text-right">
+          <p class="text-dimmer text-sm">Calling fouls and fair plays, not political sides. &copy; 2026 FallacyFlag. All rights reserved.</p>
+          <p class="text-dimmest text-xs mt-1">Identifying a fallacy &ne; saying the conclusion is wrong. Awarding Fair Play &ne; endorsing the conclusion.</p>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    function toggleMobileMenu(){var m=document.getElementById('mobile-menu');var b=document.querySelector('.hamburger');m.classList.toggle('open');b.classList.toggle('open');document.body.style.overflow=m.classList.contains('open')?'hidden':''}
+  </script>
+  <script>if('serviceWorker' in navigator){navigator.serviceWorker.register('/sw.js')}</script>
+</body>
+</html>

@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FallacyFlag — Background Gradient Comparison</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet" />
+  <style>
+    body { background: #0a0a12; color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; margin: 0; }
+    *, *::before, *::after { box-sizing: border-box; }
+
+    .comparison-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 2rem;
+    }
+
+    .option-card {
+      border-radius: 1rem;
+      overflow: hidden;
+      border: 1px solid #333;
+      transition: border-color 0.3s, transform 0.2s;
+    }
+    .option-card:hover {
+      border-color: #facf39;
+      transform: translateY(-2px);
+    }
+
+    .option-label {
+      background: rgba(0,0,0,0.7);
+      padding: 0.75rem 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #333;
+    }
+    .option-label h3 { margin: 0; font-size: 1rem; font-weight: 700; }
+    .option-label .tag {
+      font-size: 0.65rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 0.2rem 0.6rem;
+      border-radius: 1rem;
+    }
+    .tag-current { background: #facf39; color: #111; }
+    .tag-original { background: #475569; color: #ccc; }
+
+    .preview-panel {
+      height: 500px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Sample content overlay */
+    .sample-content {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem;
+    }
+
+    .sample-nav {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      padding: 0.75rem 1.5rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      backdrop-filter: blur(8px);
+    }
+
+    .sample-card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+      width: 80%;
+      max-width: 320px;
+    }
+
+    .sample-badge-red { background: #e53935; color: #fff; font-size: 0.6rem; font-weight: 800; padding: 0.15rem 0.5rem; border-radius: 0.2rem; text-transform: uppercase; display: inline-block; }
+    .sample-badge-yellow { background: #facf39; color: #111; font-size: 0.6rem; font-weight: 800; padding: 0.15rem 0.5rem; border-radius: 0.2rem; text-transform: uppercase; display: inline-block; }
+    .sample-badge-green { background: #16a34a; color: #fff; font-size: 0.6rem; font-weight: 800; padding: 0.15rem 0.5rem; border-radius: 0.2rem; text-transform: uppercase; display: inline-block; }
+
+    .description {
+      padding: 1rem 1.25rem;
+      background: rgba(0,0,0,0.6);
+      font-size: 0.8rem;
+      color: #9ca3af;
+      line-height: 1.6;
+      border-top: 1px solid #333;
+    }
+
+    /* === GRADIENT OPTIONS === */
+
+    /* Option 1: Dark & Dramatic */
+    .bg-dramatic {
+      background: #0c0c14;
+      background-image: repeating-linear-gradient(to bottom,
+        rgba(229,57,53,0.30) 0px,
+        rgba(229,57,53,0.08) 250px,
+        rgba(250,207,57,0.12) 500px,
+        rgba(250,207,57,0.03) 700px,
+        rgba(12,12,20,1) 900px,
+        rgba(229,57,53,0.30) 1200px
+      );
+    }
+    .bg-dramatic .sample-nav { background: rgba(12,12,20,0.95); border-bottom: 1px solid rgba(229,57,53,0.3); }
+
+    /* Option 2: Subtle & Professional */
+    .bg-subtle {
+      background: #111827;
+      background-image: repeating-linear-gradient(to bottom,
+        rgba(229,57,53,0.08) 0px,
+        rgba(200,200,215,0.03) 500px,
+        rgba(229,57,53,0.08) 1000px
+      );
+    }
+    .bg-subtle .sample-nav { background: rgba(17,24,39,0.97); border-bottom: 1px solid rgba(229,57,53,0.12); }
+
+    /* Option 3: Warm & Inviting */
+    .bg-warm {
+      background: #171520;
+      background-image: repeating-linear-gradient(to bottom,
+        rgba(229,57,53,0.16) 0px,
+        rgba(250,207,57,0.10) 300px,
+        rgba(229,57,53,0.06) 600px,
+        rgba(250,207,57,0.08) 900px,
+        rgba(229,57,53,0.16) 1200px
+      );
+    }
+    .bg-warm .sample-nav { background: rgba(23,21,32,0.95); border-bottom: 1px solid rgba(250,207,57,0.15); }
+
+    /* Option 4: High Contrast / Editorial (CURRENT) */
+    .bg-editorial {
+      background: #111118;
+      background-image: repeating-linear-gradient(to bottom,
+        rgba(229,57,53,0.28) 0px,
+        rgba(229,57,53,0.10) 200px,
+        rgba(200,200,215,0.10) 500px,
+        rgba(200,200,215,0.04) 650px,
+        rgba(15,15,25,0.95) 800px,
+        rgba(229,57,53,0.28) 1100px
+      );
+    }
+    .bg-editorial .sample-nav { background: rgba(17,17,24,0.97); border-bottom: 1px solid rgba(229,57,53,0.25); }
+
+    h1 { text-align: center; margin: 2.5rem 0 0.5rem; font-size: 1.6rem; font-weight: 800; }
+    .subtitle { text-align: center; color: #6b7280; font-size: 0.9rem; margin-bottom: 2rem; }
+
+    @media (max-width: 768px) {
+      .comparison-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Background Gradient Options</h1>
+  <p class="subtitle">Hover to highlight. Each panel shows how the gradient looks with actual site content.</p>
+
+  <div class="comparison-grid">
+
+    <!-- Option 1: Dark & Dramatic -->
+    <div class="option-card">
+      <div class="option-label">
+        <h3 style="color:#f87171">1. Dark &amp; Dramatic</h3>
+        <span class="tag tag-original">Option</span>
+      </div>
+      <div class="preview-panel bg-dramatic">
+        <div class="sample-nav">
+          <span style="color:#facf39; font-weight:900; font-size:0.9rem">FALLACY FLAG</span>
+          <div style="display:flex; gap:1rem; font-size:0.75rem; color:#9ca3af">
+            <span>About</span><span>Latest</span><span>Analyzer</span>
+          </div>
+        </div>
+        <div class="sample-content">
+          <p style="color:#facf39; font-size:0.7rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.5rem">FallacyFlag</p>
+          <p style="font-size:1.3rem; font-weight:800; margin-bottom:1.5rem">Raising the flag on faulty reasoning</p>
+          <div class="sample-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem">
+              <span style="font-size:0.8rem; font-weight:700">White House Press Briefing</span>
+              <span class="sample-badge-red">Red Card</span>
+            </div>
+            <p style="font-size:0.7rem; color:#9ca3af; line-height:1.5; margin-bottom:0.5rem">Analysis of logical reasoning in recent remarks...</p>
+            <div style="display:flex; gap:0.3rem">
+              <span class="sample-badge-yellow" style="font-size:0.55rem">Yellow Card</span>
+              <span class="sample-badge-green" style="font-size:0.55rem">Fair Play</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="description">
+        Deep near-black base with <strong style="color:#f87171">bold red</strong> and <strong style="color:#facf39">gold</strong> accents that visibly pulse. Dramatic, high-energy feel. Best for making brand colors pop against darkness.
+      </div>
+    </div>
+
+    <!-- Option 2: Subtle & Professional -->
+    <div class="option-card">
+      <div class="option-label">
+        <h3 style="color:#93c5fd">2. Subtle &amp; Professional</h3>
+        <span class="tag tag-original">Option</span>
+      </div>
+      <div class="preview-panel bg-subtle">
+        <div class="sample-nav">
+          <span style="color:#facf39; font-weight:900; font-size:0.9rem">FALLACY FLAG</span>
+          <div style="display:flex; gap:1rem; font-size:0.75rem; color:#9ca3af">
+            <span>About</span><span>Latest</span><span>Analyzer</span>
+          </div>
+        </div>
+        <div class="sample-content">
+          <p style="color:#facf39; font-size:0.7rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.5rem">FallacyFlag</p>
+          <p style="font-size:1.3rem; font-weight:800; margin-bottom:1.5rem">Raising the flag on faulty reasoning</p>
+          <div class="sample-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem">
+              <span style="font-size:0.8rem; font-weight:700">White House Press Briefing</span>
+              <span class="sample-badge-red">Red Card</span>
+            </div>
+            <p style="font-size:0.7rem; color:#9ca3af; line-height:1.5; margin-bottom:0.5rem">Analysis of logical reasoning in recent remarks...</p>
+            <div style="display:flex; gap:0.3rem">
+              <span class="sample-badge-yellow" style="font-size:0.55rem">Yellow Card</span>
+              <span class="sample-badge-green" style="font-size:0.55rem">Fair Play</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="description">
+        Clean dark background with <strong style="color:#9ca3af">barely visible</strong> red warmth. Feels like a premium news site. Lets content and badges carry all the color. Most restrained option.
+      </div>
+    </div>
+
+    <!-- Option 3: Warm & Inviting -->
+    <div class="option-card">
+      <div class="option-label">
+        <h3 style="color:#fbbf24">3. Warm &amp; Inviting</h3>
+        <span class="tag tag-original">Option</span>
+      </div>
+      <div class="preview-panel bg-warm">
+        <div class="sample-nav">
+          <span style="color:#facf39; font-weight:900; font-size:0.9rem">FALLACY FLAG</span>
+          <div style="display:flex; gap:1rem; font-size:0.75rem; color:#9ca3af">
+            <span>About</span><span>Latest</span><span>Analyzer</span>
+          </div>
+        </div>
+        <div class="sample-content">
+          <p style="color:#facf39; font-size:0.7rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.5rem">FallacyFlag</p>
+          <p style="font-size:1.3rem; font-weight:800; margin-bottom:1.5rem">Raising the flag on faulty reasoning</p>
+          <div class="sample-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem">
+              <span style="font-size:0.8rem; font-weight:700">White House Press Briefing</span>
+              <span class="sample-badge-red">Red Card</span>
+            </div>
+            <p style="font-size:0.7rem; color:#9ca3af; line-height:1.5; margin-bottom:0.5rem">Analysis of logical reasoning in recent remarks...</p>
+            <div style="display:flex; gap:0.3rem">
+              <span class="sample-badge-yellow" style="font-size:0.55rem">Yellow Card</span>
+              <span class="sample-badge-green" style="font-size:0.55rem">Fair Play</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="description">
+        Soft alternating glow between <strong style="color:#f87171">red</strong> and <strong style="color:#facf39">gold</strong>. Feels warmer, more approachable. Similar to the original amber tones but using brand colors. Good middle ground.
+      </div>
+    </div>
+
+    <!-- Option 4: High Contrast / Editorial (CURRENT) -->
+    <div class="option-card">
+      <div class="option-label">
+        <h3 style="color:#4ade80">4. High Contrast / Editorial</h3>
+        <span class="tag tag-current">Current</span>
+      </div>
+      <div class="preview-panel bg-editorial">
+        <div class="sample-nav">
+          <span style="color:#facf39; font-weight:900; font-size:0.9rem">FALLACY FLAG</span>
+          <div style="display:flex; gap:1rem; font-size:0.75rem; color:#9ca3af">
+            <span>About</span><span>Latest</span><span>Analyzer</span>
+          </div>
+        </div>
+        <div class="sample-content">
+          <p style="color:#facf39; font-size:0.7rem; font-weight:700; letter-spacing:0.1em; text-transform:uppercase; margin-bottom:0.5rem">FallacyFlag</p>
+          <p style="font-size:1.3rem; font-weight:800; margin-bottom:1.5rem">Raising the flag on faulty reasoning</p>
+          <div class="sample-card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem">
+              <span style="font-size:0.8rem; font-weight:700">White House Press Briefing</span>
+              <span class="sample-badge-red">Red Card</span>
+            </div>
+            <p style="font-size:0.7rem; color:#9ca3af; line-height:1.5; margin-bottom:0.5rem">Analysis of logical reasoning in recent remarks...</p>
+            <div style="display:flex; gap:0.3rem">
+              <span class="sample-badge-yellow" style="font-size:0.55rem">Yellow Card</span>
+              <span class="sample-badge-green" style="font-size:0.55rem">Fair Play</span>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="description">
+        Distinct bands: <strong style="color:#f87171">bold red</strong> zones fade to <strong style="color:#d1d5db">cool gray</strong>, then into <strong style="color:#6b7280">deep black</strong>. Creates editorial "panels" that visually separate page sections. Most structured feel.
+      </div>
+    </div>
+
+  </div>
+
+  <div style="text-align:center; padding:2rem; color:#6b7280; font-size:0.8rem">
+    Open this file in your browser to compare all four options side by side.
+  </div>
+
+</body>
+</html>

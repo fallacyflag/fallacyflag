@@ -1,0 +1,11 @@
+{
+    "name": "fallacyflag-site",
+    "version": "1.0.0",
+    "description": "FallacyFlag - Raising the flag on faulty reasoning",
+  "type": "module",
+    "dependencies": {
+          "@anthropic-ai/sdk": "^0.39.0",
+          "@netlify/blobs": "^8.1.0",
+          "@netlify/functions": "^3.0.0"
+    }
+}
