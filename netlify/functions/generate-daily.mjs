@@ -240,7 +240,7 @@ function buildPrompt(sourceMaterial, existingIds, existingQuotes, isPotus) {
 
   const speakerGuidance = isPotus
     ? `SPEAKER CONSTRAINT — THIS IS THE POTUS PAGE:
-Every analysis MUST be about President Donald Trump. Use his direct quotes when available, but you may also analyze claims attributed to him through paraphrase (e.g. "Trump said he would...", "the president argued that..."), official White House statements, executive orders, and reported remarks. The speaker field should always read "President Donald Trump" or "Donald Trump".`
+Every analysis MUST be about President Donald Trump. Use his direct quotes when available, but you may also analyze claims attributed to him through paraphrase (e.g. "Trump said he would...", "the president argued that..."), official White House statements, executive orders, and reported remarks. The speaker field should always read "Donald Trump" (no title — just the full name).`
     : `Include a diverse mix of political figures. Vary party affiliation. Include Fair Play (green) examples when the source material contains well-reasoned arguments.`;
 
   return `You are the editorial engine for FallacyFlag, a nonpartisan site that analyzes political rhetoric for logical fallacies using a soccer-themed rating system.
@@ -260,8 +260,8 @@ ABSOLUTE RULES — VIOLATION = FAILURE:
 • If the source only paraphrases a claim (e.g. "Senator X argued that..."), you may use the paraphrase but attribute it clearly as reported speech.
 • Do NOT invent, fabricate, recall from memory, or embellish ANY quotes.
 • Do NOT attribute quotes to people who are not mentioned in the source material.
-• The speaker field must match exactly how the person is identified in the source.
-• The context field should reflect when/where the statement was made per the source.
+• SPEAKER NAME FORMAT: The speaker field must contain ONLY the person's full name (e.g. "Donald Trump", "Pete Hegseth", "Becky Pringle"). Do NOT include titles, roles, or affiliations in the speaker field (no "President", "Secretary of Defense", "NEA President", "Rep.", "Sen.", etc.). Put titles and roles in the context field instead. Always use the person's full name — never just a last name like "Trump".
+• The context field should reflect when/where the statement was made per the source, and should include the speaker's title/role (e.g. "President Trump said during a press conference..." or "Secretary of Defense Pete Hegseth stated...").
 • Include the sourceRef number (e.g. [3]) indicating which source article the quote comes from.
 • SPEAKERS: Only analyze quotes from POLITICAL FIGURES — elected officials, candidates, cabinet members, governors, presidents, party leaders, and political appointees. NEVER analyze quotes from journalists, reporters, TV hosts, professors, commentators, pundits, or media personalities. If a journalist quotes a politician, analyze the POLITICIAN'S quote, not the journalist's commentary.
 • DEDUPLICATION: If the same quote, claim, or statement appears in multiple source articles, only create ONE card for it. Pick the source with the most complete quote or context. Never create multiple cards for the same underlying statement just because different outlets covered it.
@@ -500,8 +500,26 @@ async function generateForType(client, store, isPotus) {
     return true;
   });
 
+  // Clean up speaker names — strip titles, ensure full names
+  const TITLE_PREFIXES = /^(president|vice president|senator|sen\.|rep\.|representative|congressman|congresswoman|governor|gov\.|mayor|secretary|secretary of \w+|defense secretary|speaker|leader|chair|chairman|chairwoman|commissioner|ambassador|director|administrator|dr\.|mr\.|mrs\.|ms\.)\s+/i;
+
+  function cleanSpeakerName(speaker) {
+    if (!speaker) return speaker;
+    let name = speaker.trim();
+    // Strip title prefixes repeatedly (handles "President Donald Trump", "NEA President Becky Pringle")
+    // Also handle org prefixes like "NEA President"
+    name = name.replace(/^[\w.]+\s+(president|chair|director|secretary|administrator)\s+/i, "");
+    // Strip standard title prefixes
+    let prev;
+    do { prev = name; name = name.replace(TITLE_PREFIXES, ""); } while (name !== prev);
+    // Strip party/state suffix like "(R-WV)" or "(D-CA)"
+    name = name.replace(/\s*\([RDIL]-\w{2}\)\s*$/, "").trim();
+    return name || speaker; // fallback to original if we stripped everything
+  }
+
   const newCards = normalizeAnalyses(filtered).map(a => ({
     ...a,
+    speaker: cleanSpeakerName(a.speaker),
     date: today,
     created_at: new Date().toISOString(),
   }));
